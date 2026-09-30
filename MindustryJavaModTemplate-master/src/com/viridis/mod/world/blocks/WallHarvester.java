@@ -1,75 +1,131 @@
 package com.viridis.mod.world.blocks;
 
+import arc.*;
+import arc.graphics.g2d.*;
 import arc.math.*;
+import arc.math.geom.*;
 import arc.struct.*;
+import arc.util.*;
+import mindustry.annotations.Annotations.*;
+import mindustry.entities.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
+import mindustry.graphics.*;
 import mindustry.type.*;
+import mindustry.ui.*;
 import mindustry.world.*;
-import mindustry.world.blocks.production.*;
+import mindustry.world.blocks.environment.*;
+import mindustry.world.meta.*;
+
 import com.viridis.mod.system.*;
+
+import static mindustry.Vars.*;
 
 /**
  * «Корневой надрезатель» — стенной бур.
- * Ставится на пол (перекрытый), но сканирует СМЕЖНЫЕ солид-блоки (стены ферро-флоры instanceof Wall).
- * При добыче поднимает вибрацию → регистрирует дельту раздражения в IrritationManager.
+ * Ставится на пол, сканирует солид-блоки в направлении ротации (стены ферро-флоры: solid && instanceof Wall).
+ * Вибрация при добыче регистрируется в IrritationManager (всплеск раз в ~2 секунды, без опроса карты).
  */
-public class WallHarvester extends Drill{
+public class WallHarvester extends Block{
   /** Предмет, который «содержат» стены (жилы металлов). */
   public Item wallDrop = null;
-  public float harvestTime = 90f;
+  public float harvestTime = 150f;
   /** Дельта раздражения в секунду при активной работе. */
   public float irritationPerSecond = 0.4f;
+  public float rotateSpeed = 2.4f;
+  public Effect updateEffect = Fx.mineWallSmall;
+  public float updateEffectChance = 0.03f;
+  public @Load("@-top") TextureRegion topRegion;
+  public @Load("@-rotator") TextureRegion rotatorRegion;
+
+  public final int timerVib = timers++;
 
   public WallHarvester(String name){
     super(name);
     size = 2;
+    hasItems = true;
+    itemCapacity = 12;
+    rotate = true;
+    update = true;
     solid = true;
-    updateLiquids = true;
-    drillTime = harvestTime;
-    tier = 4;
-    flags = IntSet.with(BlockFlag.expandDuctless ? BlockFlag.duct : 0); //no-op safe default below
-    flags = IntSet.with(0);
-    itemCapacity = 10;
-    liquidCapacity = 20f;
-    //нет тайловой добычи — вся логика в updateTile()
-    tiles = false;
+    destructible = true;
+    flags = EnumSet.of(BlockFlag.drill);
+    envEnabled |= Env.space;
+    category = Category.production;
   }
 
-  {
-    //после конструктора: корректный набор флагов
-    flags = IntSet.with(BlockFlag.waterExtract);
+  @Override
+  public void setStats(){
+    super.setStats();
+    stats.add(Stat.output, wallDrop);
+    stats.add(Stat.drillSpeed, 60f / harvestTime * size, StatUnit.itemsSecond);
+  }
+
+  @Override
+  public void setBars(){
+    super.setBars();
+    addBar("harvest", (WallHarvesterBuild e) -> new Bar(() -> Core.bundle.format("bar.drillspeed", Strings.fixed(e.lastEff * 60f / harvestTime, 2)), () -> Pal.ammo, () -> e.warmup));
+  }
+
+  @Override
+  public boolean outputsItems(){
+    return true;
+  }
+
+  @Override
+  public TextureRegion[] icons(){
+    return new TextureRegion[]{region, topRegion};
+  }
+
+  @Override
+  public void drawPlanRegion(BuildPlan plan, Eachable<BuildPlan> list){
+    Draw.rect(region, plan.drawx(), plan.drawy());
+    Draw.rect(topRegion, plan.drawx(), plan.drawy(), plan.rotation * 90);
+  }
+
+  /** Стена ферро-флоры: неразрушимый солид-блок, являющийся стеной. */
+  public static boolean isFerroWall(@Nullable Block b){
+    return b != null && b.solid && (b instanceof StaticWall || b instanceof Wall);
+  }
+
+  /** Сколько целевых стен в линии ротации. */
+  int scanCount(int tx, int ty, int rotation){
+    int cornerX = tx - (size - 1)/2, cornerY = ty - (size - 1)/2;
+    int n = 0;
+    for(int i = 0; i < size; i++){
+      int rx = 0, ry = 0;
+      switch(rotation){
+        case 0 -> { rx = cornerX + size; ry = cornerY + i; }
+        case 1 -> { rx = cornerX + i; ry = cornerY + size; }
+        case 2 -> { rx = cornerX - 1; ry = cornerY + i; }
+        case 3 -> { rx = cornerX + i; ry = cornerY - 1; }
+      }
+      Tile other = world.tile(rx, ry);
+      if(other != null && isFerroWall(other.block())) n++;
+    }
+    return n;
   }
 
   @Override
   public boolean canPlaceOn(Tile tile, Team team, int rotation){
-    //хотя бы одна смежная стена-препятствие
-    for(Point2 p : Geometry.d4){
-      Tile other = tile.near(p.x, p.y);
-      if(other != null && isFerroWall(other.block())) return true;
-    }
-    return false;
-  }
-
-  /** Стена ферро-флоры: неразрушимый солид-блок, являющийся стеной. */
-  public static boolean isFerroWall(Block b){
-    return b != null && b.solid && b instanceof Wall;
+    return scanCount(tile.x, tile.y, rotation) > 0;
   }
 
   @Override
-  public void init(){
-    //не полагаться на стандартный oreItemDrillTime — дроп задаётся вручную
-    dropItem = wallDrop;
-    super.init();
+  public void drawPlace(int x, int y, int rotation, boolean valid){
+    super.drawPlace(x, y, rotation, valid);
+    int n = scanCount(x, y, rotation);
+    drawPlaceText(Core.bundle.formatFloat("bar.drillspeed", 60f / harvestTime * n, 2), x, y, valid);
   }
 
-  public class WallHarvesterBuild extends DrillBuild{
-    float vibTimer = 0f;
-    boolean registered = false;
+  public class WallHarvesterBuild extends Building{
+    public float time, warmup, totalTime, lastEff;
+    boolean registered;
 
     @Override
     public void placed(){
       super.placed();
+      //децентрализованная регистрация влияния при установке
       IrritationManager.register(this, irritationPerSecond);
       registered = true;
     }
@@ -77,6 +133,16 @@ public class WallHarvester extends Drill{
     @Override
     public void onProximityRemoved(){
       super.onProximityRemoved();
+      unregisterIrritation();
+    }
+
+    @Override
+    public void handleDestroyed(DamageType type){
+      unregisterIrritation();
+      super.handleDestroyed(type);
+    }
+
+    void unregisterIrritation(){
       if(registered){
         IrritationManager.unregister(this);
         registered = false;
@@ -85,43 +151,32 @@ public class WallHarvester extends Drill{
 
     @Override
     public void updateTile(){
-      //скан смежных стен каждый ~30 тиков, без опроса карты
-      boolean mining = false;
-      if(timer(timerWarm, 30f)){
-        for(Point2 p : Geometry.d4){
-          Tile other = tile.near(p.x, p.y);
-          if(other != null && isFerroWall(other.block()) && other.floor() != null){
-            mining = true;
-            break;
-          }
-        }
-      } else {
-        mining = !items.isEmpty() || progress > 0f;
-      }
+      super.updateTile();
 
-      if(mining && efficiency > 0f){
-        progress += timeDelta / harvestTime * warmup;
-        timeDrilled += timeDelta;
-        vibTimer += timeDelta;
-        //вибрация: раз в 2 секунды всплеск раздражения
-        if(vibTimer > 120f){
-          vibTimer = 0f;
+      int walls = scanCount(tile.x, tile.y, rotation);
+      float eff = walls / (float)size;
+      lastEff = eff;
+      warmup = Mathf.approachDelta(warmup, Mathf.num(eff > 0f && shouldConsume()), 1f / 40f);
+
+      if(walls > 0 && shouldConsume() && (time += edelta() * warmup * eff) >= harvestTime){
+        time %= harvestTime;
+        if(handleItem(null, wallDrop)){
+          produced(wallDrop);
+        }else{
+          items.add(wallDrop, 1);
+        }
+        //вибрация: всплеск раздражения раз в 2 секунды активной добычи
+        if(timer(timerVib, 120f)){
           IrritationManager.bump(0.004f);
         }
-        if(progress >= 1f){
-          progress = 0f;
-          if(wallDrop != null && handleItem(null, wallDrop)){
-            produced(wallDrop);
-            Events.fire(new ItemDropEvent(tile.worldx(), tile.worldy(), wallDrop));
-          }else if(wallDrop != null){
-            items.add(wallDrop, 1);
-          }
+        if(wasVisible){
+          updateEffect.at(x + Geometry.d4x(rotation) * tilesize, y + Geometry.d4y(rotation) * tilesize, wallDrop.color);
         }
-      }else{
-        progress = Mathf.zeroOut(progress, 0.02f);
       }
-      //разгрузка в конвейеры/ядро
-      if(!items.empty()){
+
+      totalTime += warmup * edelta();
+
+      if(timer(timerDump, dumpTime)){
         dump(wallDrop);
       }
     }
@@ -133,12 +188,10 @@ public class WallHarvester extends Drill{
 
     @Override
     public void draw(){
-      drawBase();
-      //вращающийся резак
-      Drawf.spinSprite(Core.atlas.find("viridis-wall-harvester-rotator"), x, y, rotate ? rotation*90f + time() * 2f : time()*2f);
+      Draw.rect(region, x, y);
+      Draw.rect(topRegion, x, y, rotdeg());
+      Draw.z(Layer.blockOver + 0.1f);
+      Drawf.spinSprite(rotatorRegion, x, y, totalTime * rotateSpeed);
     }
   }
-
-  /** Пустотелый конструктор для ItemDropEvent не нужен — используем встроенный EventHandle. */
-  static class Dummy{}
 }

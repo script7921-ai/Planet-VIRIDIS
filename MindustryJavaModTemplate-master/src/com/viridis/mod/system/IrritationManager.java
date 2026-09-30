@@ -6,6 +6,9 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
+import mindustry.world.blocks.defense.Wall;
+
+import com.viridis.mod.content.ViridisPlanets;
 
 /**
  * Синглтон-контроллер шкалы Раздражения биосферы.
@@ -36,11 +39,21 @@ public class IrritationManager{
   static final Color colRage = Color.valueOf("c800ff");
   static final Color tmpCol = new Color();
 
+  /** true если текущая игра идёт на Виридисе — единственный случай, когда шкала активна. */
+  public static boolean viridisActive(){
+    return Vars.state != null && Vars.state.rules.planet == ViridisPlanets.viridis;
+  }
+
   public static void init(){
     Events.on(ClientLoadEvent.class, e -> reset());
     Events.on(GameOverEvent.class, e -> reset());
+    //смена состояния / сектора: сброс при выходе из игры, пересчёт привязки к планете
+    Events.on(StateChangeEvent.class, e -> {
+      if(e.to == State.menu || e.to == State.paused){ /* значение сохраняется до конца игры */ }
+      if(e.from == State.playing && e.to != State.playing) reset();
+    });
     //пересчёт пула агрессии строго раз в секунду (60 тиков), не каждый кадр
-    Timer.schedule(() -> update(), 1f, 1f);
+    Timer.schedule(() -> { if(viridisActive()) update(); }, 1f, 1f);
   }
 
   public static void reset(){
