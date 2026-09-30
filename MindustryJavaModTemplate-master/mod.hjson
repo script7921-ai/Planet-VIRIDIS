@@ -1,0 +1,23 @@
+#the mod name as displayed in-game
+displayName: "Виридис (Viridis)"
+
+#the internal name of your mod
+name: "viridis"
+
+#your name
+author: "Viridis Dev Team"
+
+#the fully qualified main class of the mod
+main: "com.viridis.mod.ViridisMod"
+
+#the mod description as seen in the mod dialog
+description: "Живая планета: автономная кампания из 17 сюжетных секторов, 120+ процедурных секторов, шкала Раздражения биосферы, био-синтез и финал «Глубокий Симбиоз»."
+
+#the mod version
+version: 0.4.0
+
+#the minimum game build required to run this mod
+minGameVersion: 160.3
+
+#this is a java mod
+java: true
