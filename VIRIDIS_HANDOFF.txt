@@ -1,0 +1,950 @@
+================================================================================
+HANDOFF-ДОКУМЕНТ: МОД «ВИРИДИС» (Viridis) — ПОЛНЫЙ СЛЕПОК ПАМЯТИ
+Дата: 2026-10-01 | Целевая платформа: Mindustry v160 (Arc)
+Статус проекта: НЕ КОМПИЛИРУЕТСЯ (~18%). Ниже — вся фактура для завершения.
+================================================================================
+
+██████████████████████████████████████████████████████████████████████████████
+РАЗДЕЛ 1. ТЕКУЩИЙ СТАТУС РЕПОЗИТОРИЯ
+██████████████████████████████████████████████████████████████████████████████
+
+Корень проекта:
+  /workspace/                                    <- git-репозиторий
+  └── MindustryJavaModTemplate-master/           <- рабочий каталог мода
+      ├── build.gradle                           [OK] mindustryVersion = "v160"
+      ├── mod.hjson                              [OK] main: com.viridis.mod.ViridisMod, minGameVersion: 160.3, java:true
+      ├── gradlew / gradle/                      [OK] Gradle wrapper присутствует
+      ├── libs/dependencies.jar                  [OK] v160 с .java-Исходниками ВНУТРИ jar (!)
+      └── assets/sprites/frog.png                [!] единственный спрайт (из шаблона)
+
+Существующие Java-файлы (src/com/viridis/mod/) и их проблемы:
+
+[OK]   ViridisMod.java                 — написан; ссылается на 4 НЕСУЩЕСТВУЮЩИХ класса
+                                        -> компиляция падает (см. список ниже)
+
+[!]    content/ViridisItems.java       — использует несуществующие поля Item:
+                                         chargeTime, chargeBeginColor, chargeMidColor,
+                                         lightColor (у Item в v160 только color, hardness,
+                                         cost + базовые flammability/explosiveness/radioactivity)
+                                         Удалить эти 4 поля из luminite/radBulb/nitroPollen/neuralFiber
+
+[!]    content/ViridisLiquids.java     — canStayOn = new Liquid[]{this}  <- НЕВЕРНЫЙ ТИП!
+                                         Правильно: ObjectSet<Liquid> (см. раздел 2)
+                                         Нет алиаса water
+
+[OK~]  content/ViridisFx.java          — почти готов; сверить Interp.smooth, cone у
+                                         ParticleEffect, RadialEffect(Effect,int,float,float)
+
+[!]    world/blocks/WallHarvester.java :
+         - handleDestroyed(DamageType) -> НЕ СУЩЕСТВУЕТ. Хук: onDestroyed()
+           (DamageType вообще отсутствует в v160-jar!)
+         - import java.util.* для EnumSet -> использовать arc.struct.EnumSet
+         - flags = EnumSet.of(BlockFlag.drill) -> ФЛАГА drill НЕТ в v160 enum! УДАЛИТЬ строку
+         - потерян импорт mindustry.entities.units.BuildPlan (используется в drawPlanRegion)
+                                           -> ОШИБКА КОМПИЛЯЦИИ №1 этого файла
+
+[!]    world/blocks/LyticAutoclave.java:
+         - Tiles.spawnLiquid(...) -> НЕ СУЩЕСТВУЕТ.
+           Заменить: mindustry.entities.Puddles.deposit(tile, overflowFluid, 0.35f)
+         - handleDestroyed(DamageType) -> onDestroyed()
+         - import java.util.* -> убрать; flags не трогать (factory выставлен родителем)
+
+[!]    world/blocks/PeltierPump.java   :
+         - Stat.optional -> НЕТ ТАКОГО ПОЛЯ В Stat v160 (полный список в разделе 2).
+           Удалить весь проблемный override setStats() или переписать на существующие Stat
+         - result() вызывается как метод -> result это ПОЛЕ public Liquid result
+           Правильно: liquids.get(result)
+         - Damage.damage(Team,float,float,float,float,boolean...) — сверить перегрузку;
+           fallback: Fx.explosion.at(x,y); kill(); без Direct damage
+         - handleDestroyed -> onDestroyed; flags=pump удалить (флага нет); java.util убрать
+
+[!]    world/blocks/BioWall.java       :
+         - wasRecentlyDamaged()/timeSinceHit — НЕ НАЙДЕНО в BuildingComp (grep по всем
+           исходникам jar дал пусто!). Переписать регенерацию на СОБСТВЕННЫЙ таймер
+           (полный код — раздел 3.7)
+         - maxHealth не поле Building -> использовать block.health
+         - handleDestroyed -> onDestroyed
+         - write/read уже есть (сигнатуры подтверждены)
+
+[!]    system/IrritationManager.java   :
+         - !b.exists() -> заменить на b.tile == null || b.tile.build != b
+         - ссылка на ViridisPlanets.viridis (класс ещё не создан)
+         - остальное API чисто: Events.on(ClientLoadEvent/GameOverEvent/StateChangeEvent),
+           Timer.schedule(Runnable,float,float) — подтверждены javap
+
+[!!]   system/VascularOverlay.java     — 4 бага:
+         1) Vars.hudGroup -> НЕТ. Правильно: Vars.ui.hudGroup.addChild(...)
+            (javap mindustry.core.UI: public WidgetGroup hudGroup; menuGroup; HudFragment hudfrag)
+         2) Vars.camera -> НЕТ. Правильно: Core.camera (arc.Core: public static Camera camera)
+         3) world.tiles() -> tiles это ПОЛЕ типа mindustry.world.Tiles (не массив!).
+            Обход: for tx<world.width(), ty<world.height(): world.tile(tx,ty)
+            (Vars.world имеет тип mindustry.core.World, НЕ mindustry.world.World!)
+         4) VUI.showInfoQuick(...) -> класс существует (mindustry.ui.VUI), но метод
+            ненадёжен. САМЫЙ БЕЗОПАСНЫЙ ВАРИАНТ: удалить вызов полностью (флаг работает молча)
+         5) Fonts.outline.draw сигнатура может отличаться -> при ошибке компиляции править
+         GC-правило: НИКАКИХ new Color() внутри draw(). Только статические поля цвета +
+         Draw.color(colCalm) / Tmp.c1.set(...)
+
+ОТСУТСТВУЮЩИЕ КЛАССЫ (ломают компиляцию ViridisMod.loadContent()):
+  1. com.viridis.mod.content.ViridisTechConstants  (вызывается в loadContent!)
+  2. com.viridis.mod.content.ViridisBlocks        (+ метод load())
+  3. com.viridis.mod.content.ViridisUnitTypes     (+ load())
+  4. com.viridis.mod.content.ViridisPlanets       (+ load(), статическое поле viridis)
+  5. com.viridis.mod.content.ViridisTechTree      (+ build())
+
+Git-история репозитория (/workspace):
+  981cdc3 Title: Implement BioWall and PeltierPump, refactor ViridisFx effects
+  4783a59 Viridis mod core implementation with custom effects, Lytic Autoclave, ...
+
+██████████████████████████████████████████████████████████████████████████████
+РАЗДЕЛ 2. БАЗА ПОДТВЕРЖДЁННЫХ СИГНАТУР v160 (РЕЗУЛЬТАТЫ JAVAP + ИСХОДНИКИ ИЗ JAR)
+██████████████████████████████████████████████████████████████████████████████
+
+!!! ЛАЙФХАК: libs/dependencies.jar содержит .java-исходники. Читать так:
+  python3 -c "import zipfile; print(zipfile.ZipFile('libs/dependencies.jar').read('mindustry/world/blocks/production/SolidPump.java').decode())"
+
+--- BuildingComp (подтверждено grep по BuildingComp.java) ---
+  public void onDestroyed()                    [OK] ЕДИНСТВЕННЫЙ хук уничтожения
+                                               DamageType в v160 НЕ найден — не использовать!
+  public void damage(float damage)             [OK]
+  public void damage(Team src, float dmg)      [OK]
+  public void damage(Bullet b, Team src, float)// [OK]
+  public void write(Writes write)              [OK] @CallSuper — вызывать super!
+  public void read(Reads read, byte revision)  [OK]
+  public byte version()                        [OK]
+  placed()                                     [OK]
+  onProximityRemoved()                         [OK]
+  produced(Item item) / produced(Item,int)     [OK] (статистика производства)
+  edelta(), delta(), timeScale                 [OK]
+  timer(int id, float interval)                [OK] из TimerComp (миксин в Building)
+  exists()                                     [!] НЕ найдено в BuildingComp ->
+                                                безопасно: b.isValid() или b.tile!=null && b.tile.build==b
+  Constants: timerPower=0, timerDump=1, timerRegen=3, timerCheckDump=6 — подтверждены
+
+--- Puddles (mindustry.entities.Puddles — НЕ mindustry.game!) ---
+  public static void deposit(Tile tile, Liquid liquid, float amount)            [OK] основной
+  public static void deposit(Tile tile, Tile source, Liquid liquid, float amt)  [OK]
+  public static void deposit(Tile, Tile, Liquid, float, boolean initial)        [OK]
+  Tiles.spawnLiquid — НЕ СУЩЕСТВУЕТ
+
+--- Liquid.canStayOn ---
+  public arc.struct.ObjectSet<mindustry.type.Liquid> canStayOn;   // НЕ МАССИВ!
+  правильно: canStayOn = ObjectSet.with(Liquids.water);
+         или: canStayOn = new ObjectSet<>(); canStayOn.add(this);
+  Поля Liquid подтверждены: gas, gasColor, lightColor, flammability, temperature,
+                           heatCapacity, viscosity, coolant
+
+--- Item (реально доступные поля) ---
+  public Color color; public int hardness; public float cost;
+  + id, name, localizedName, details, hidden, alwaysUnlocked,
+    flammability, explosiveness, radioactivity
+  НЕТ: chargeTime, chargeBeginColor, chargeMidColor, lightColor  -> УДАЛИТЬ ИЗ КОДА
+
+--- Камера / HUD / World ---
+  Core.camera               // arc.graphics.Camera (OrbitCamera): position(.x/.y), width, height
+  Vars.ui.hudGroup          // mindustry.core.UI -> public WidgetGroup hudGroup  [OK]
+  Vars.ui.hudfrag           // HudFragment  [OK]
+  Vars.world                // mindustry.core.World (НЕ mindustry.world.World!)
+  world.tile(int x, int y)  [OK] ; world.width() [OK] ; world.height() [OK]
+  world.tiles               // поле типа mindustry.world.Tiles — обход ТОЛЬКО по координатам!
+
+--- Planet / SectorPreset / TechTree / меши ---
+  new Planet(String name, Planet parent, float radius)                            [OK]
+  new Planet(String name, Planet parent, float radius, int sectorSize)            [OK]
+  поля Planet: generator, meshLoader(Prov<GenericMesh>), cloudMeshLoader, ruleSetter(Cons<Rules>),
+    defaultCore, startSector, iconColor, allowWaves, solarSystem, techTree(TechNode),
+    unlockedOnLand(Seq<UnlockableContent>), orbitRadius/orbitSpacing/orbitTime/orbitOffset,
+    atmosphereColor, atmosphereRadOut, landCloudColor, updateGroup                   [OK]
+  new HexMesh(Planet, int seed)                                                   [OK]
+  new SunMesh(Planet, int seed, double,double,double,double,double, float, Color...)[OK]
+  new HexSkyMesh(Planet,int seed,float mag,float in,int vert,Color,int stat,float,float,float)[OK]
+  new SectorPreset(String name, Planet planet, int sector)                        [OK]
+    поля: captureWave, difficulty, rules(Cons<Rules>), startWaveTimeMultiplier,
+          shieldSectors, isLastSector                                             [OK]
+  TechTree.nodeRoot(String, UnlockableContent, Runnable)                          [OK]
+  TechTree.node(content, ItemStack[], Seq<Objective>, Runnable)                   [OK]
+  TechTree.nodeProduce(UnlockableContent, Runnable)                               [OK]
+  TechTree.context()                                                              [OK]
+  TechNode.planet — PUBLIC поле -> изоляция древа: node.planet = viridis           [OK]
+  new Objectives.SectorComplete(SectorPreset)                                     [OK]
+  new Objectives.Research(UnlockableContent)                                      [OK]
+  PlanetGenerator: protected genTile(Vec3, TileGen) [OK]; protected noise(float,float,double oct,
+    double mag,double lac,double seed) [OK]; getSectorSize(Sector) [проверить public/protected
+    по javap — писать @Override с тем же модификатором]; addWeather(Sector,Rules) [OK];
+    fields seed/baseSeed [OK]
+  TileGen (mindustry.world.TileGen): public Block floor, block, overlay           [OK]
+
+--- GenericCrafter / Pump / SolidPump (ИСХОДНИКИ ПРОЧИТАНЫ) ---
+  GenericCrafter: outputItem(ItemStack)/outputItems(ItemStack[]),
+    outputLiquid(LiquidStack)/outputLiquids, liquidOutputDirections(int[]),
+    dumpExtraLiquid, ignoreLiquidFullness, craftTime, craftEffect, updateEffect,
+    updateEffectChance, warmupSpeed, drawer(DrawBlock)
+    Конструктор задаёт hasItems=true, flags factory  [OK]
+  SolidPump extends Pump: public Liquid result (ПОЛЕ!); attribute(Attribute nullable);
+    baseEfficiency; updateEffect; rotateSpeed
+    SolidPumpBuild: warmup, pumpTime, boost, validTiles, lastPump;
+    shouldConsume(){ return liquids.get(result) < liquidCapacity }  [OK]
+  Pump: pumpAmount=0.2f, consumeTime, warmupSpeed, drawer; canPump(Tile) protected [OK]
+
+--- Turrets / Bullets / Units ---
+  ItemTurret.ammo(Object... itemsAndTypes pairs)  [OK] ; ammoTypes ObjectMap<Item,BulletType>
+  Turret: maxAmmo(int), ammoPerShot(int), inaccuracy, shootCone, shootX/Y, recoil,
+    targetAir/targetGround                                                        [OK]
+  ReloadTurret.reload(float) ; TurretBuild.shootWarmup/curRecoil/heat             [OK]
+  BaseTurret.range, rotateSpeed                                                   [OK]
+  new ShootAlternate(float spread)  [OK]
+  BulletType(float speed, float damage) [OK]; splashDamage, splashDamageRadius,
+    status(StatusEffect), spawnBullets(Seq<BulletType>), collidesGround, pierceCap,
+    homingPower, lightColor                                                       [OK]
+  BasicBulletType(float speed, float damage, String gunSprite) [OK]; frontColor/backColor [OK]
+  ArtilleryBulletType(float speed, float damage)                                  [OK]
+  Weapon(String name) [OK]; Weapon() [OK]; bullet, reload, x, y, rotate, mirror, top,
+    inaccuracy, recoil                                                            [OK]
+  UnitType: constructor = UnitEntity::create ; controller = u -> new XxxAI() ;
+    health, speed, flying, hitSize, armor, mineSpeed, mineTier, mineItems(Seq<Item>),
+    itemCapacity, engineSize, isEnemy, faceTarget                                 [OK]
+
+--- Consume helpers (методы Block, подтверждены javap) ---
+  consumeItem(Item) / consumeItem(Item,int) / consumeItems(ItemStack...)
+  consumeLiquid(Liquid,float) / consumeLiquids(LiquidStack...)
+  consumePower(float) / consumePowerBuffered(float) / consumePowerDynamic(Floatf<T>)
+  consumeCoolant(float)                                                           [OK]
+
+--- BlockFlag — ПОЛНЫЙ СПИСОК v160 (ВАЖНО!) ---
+  {core, storage, generator, turret, factory, repair, battery, reactor, extinguisher,
+   shield, launchPad, unitCargoUnloadPoint, unitAssembler, hasFogRadius, steamVent,
+   blockRepair, synced, all, allLogic}
+  !!! drill / pump / wall / tileTurret / defence ОТСУТСТВУЮТ !!!
+  -> ВСЕ строки flags = EnumSet.of(BlockFlag.drill/pump/...) — УДАЛИТЬ
+  -> Block.flags имеет тип arc.struct.EnumSet<BlockFlag>; import arc.struct.EnumSet
+
+--- Stat — ПОЛНЫЙ СПИСОК ПОЛЕЙ (javap; 'optional' ОТСУТСТВУЕТ!) ---
+  all health armor size displaySize buildTime buildCost memoryCapacity explosiveness
+  flammability radioactivity charge heatCapacity viscosity temperature flying speed
+  buildSpeed mineSpeed mineTier payloadCapacity baseDeflectChance lightningChance
+  lightningDamage abilities canBoost boostingSpeed maxUnits damageMultiplier
+  healthMultiplier speedMultiplier buildSpeedMultiplier reactive healing immunities
+  itemCapacity itemsMoved launchTime maxConsecutive liquidCapacity powerCapacity
+  powerUse powerDamage powerRange powerConnections basePowerGeneration meltdownTime
+  warmupTime tiles input output productionTime maxEfficiency drillTier drillSpeed
+  linkRange instructions weapons bullet speedIncrease repairTime repairSpeed range
+  shootRange inaccuracy shots reload crushDamage legSplashDamage targetsAir
+  targetsGround damage status frequency ammo ammoCapacity ammoUse shieldHealth
+  cooldownTime regenerationRate activationTime moduleTier unitType receiveRate
+  booster boostEffect affinities opposites
+
+--- Env / Sounds / Fx / Rules / Weather / SpawnGroup ---
+  Env.{terrestrial space underwater spores scorching groundOil groundWater oxygen any none} [OK]
+  Sounds (mindustry.gen.Sounds): explosion [OK], placementPlace, drillImpact/drillCharge —
+    ПРОВЕРИТЬ при компиляции; если нет — удалить ambientSound
+  Fx.explosion [OK]; Effect.at(x,y,color) [OK]
+  Rules: waveTimer waveSending waves attackMode coreCapture waveSpacing sector waveTeam
+    planet fire unitDamageMultiplier spawns(Seq<SpawnGroup>)                       [OK]
+  SpawnGroup(UnitType): begin end spacing max unitScaling shieldScaling shields    [OK]
+  Weather(String) extends UnlockableContent; ParticleWeather [mindustry.weather]     [OK]
+  EventType.Trigger.draw [OK] ; ClientLoadEvent GameOverEvent StateChangeEvent [OK]
+
+--- Team ---
+  Team.all, baseTeams; derelict sharded crux malis green blue neoplastic [OK]
+  constructor PROTECTED -> новую команду фауны создавать НЕЛЬЗЯ.
+  Использовать Team.crux как врага Виридиса.
+
+██████████████████████████████████████████████████████████████████████████████
+РАЗДЕЛ 3. ГОТОВЫЙ КОД ДЛЯ ЗАПИСИ
+██████████████████████████████████████████████████████████████████████████████
+
+--------------------------------------------------------------------------------
+3.1 src/com/viridis/mod/content/ViridisTechConstants.java (СОЗДАТЬ)
+--------------------------------------------------------------------------------
+package com.viridis.mod.content;
+
+/** Общие константы палитры/таймингов древа. Минимален, чтобы не разрывать цепочку загрузки. */
+public class ViridisTechConstants{
+  public static final float researchTickInterval = 60f;
+  public static void init(){ /* hook for future constants; currently no-op */ }
+}
+
+--------------------------------------------------------------------------------
+3.2 src/com/viridis/mod/content/ViridisPlanets.java (СОЗДАТЬ)
+--------------------------------------------------------------------------------
+package com.viridis.mod.content;
+
+import arc.graphics.*;
+import mindustry.graphics.g3d.*;
+import mindustry.type.*;
+import mindustry.content.*;
+import mindustry.game.*;
+import com.viridis.mod.system.IrritationManager;
+
+public class ViridisPlanets{
+  public static Planet viridis;
+  public static SectorPreset
+    touchpoint, emeraldShallows, rootPath, boilingGarden,      // релиз 1
+    allergy, rift, ferroTerrace, hiveQueen,                    // релиз 2
+    forgottenCanopy, frostSpike, acidCanyon, maw, sleepingNode,// релиз 3
+    nerveOutgrowths, runoff, barkCitadel, heart;               // релиз 4
+
+  public static void load(){
+    viridis = new Planet("viridis", Planets.serpulo, 1.1f, 8){{
+      generator = new ViridisPlanetGenerator();
+      meshLoader = () -> new HexMesh(this, 6);
+      cloudMeshLoader = () -> new HexSkyMesh(this, 11, 0.15f, 0.5f, 5, Color.valueOf("1e3f20").a(0.75f), 3, 0.0f, 3.2f, 0.7f);
+      iconColor = Color.valueOf("55ff44");
+      defaultCore = ViridisBlocks.coreSprout;
+      startSector = 17;
+      allowWaves = true;
+      ruleSetter = r -> {
+        r.waveTeam = Team.crux;
+        r.placeRangeCheck = false;
+        r.showSpawns = false;
+        r.coreIncinerates = true;
+      };
+      orbitRadius = 30f;
+      orbitSpacing = 19f;
+      solarSystem = Planets.serpulo;
+    }};
+
+    touchpoint     = preset("viridis-touchpoint",      "Точка Касания",      17, 0,  1f);
+    emeraldShallows= preset("viridis-emerald-shallows","Изумрудная Заводь",  18, 8,  2f);
+    rootPath       = preset("viridis-root-path",       "Корневой Лабиринт",  26, 10, 3f);
+    boilingGarden  = preset("viridis-boiling-garden",  "Кипящий Сад",        34, 16, 4f);
+    allergy        = preset("viridis-allergy",         "Аллергия",           35, 20, 5f);
+    rift           = preset("viridis-rift",            "Гнилостный Разлом",  43, 24, 6f);
+    ferroTerrace   = preset("viridis-ferro-terrace",   "Броне-Терраса",      42, 30, 7f);
+    hiveQueen      = preset("viridis-hive",            "Улей Матки",         50, 36, 8f);
+    forgottenCanopy= preset("viridis-canopy",          "Забытый Полог",      58, 40, 9f);
+    frostSpike     = preset("viridis-frost-spike",     "Морозный Шип",       57, 46, 10f);
+    acidCanyon     = preset("viridis-acid-canyon",     "Кислотный Каньон",   49, 50, 11f);
+    maw            = preset("viridis-maw",             "Чрево",              41, 56, 12f);
+    sleepingNode   = preset("viridis-sleeping-node",   "Спящий Узел",        33, 60, 13f);
+    nerveOutgrowths= preset("viridis-nerves",          "Нервные Отростки",   25, 64, 14f);
+    runoff         = preset("viridis-runoff",          "Первобытный Сток",   19, 68, 15f);
+    barkCitadel    = preset("viridis-citadel",         "Цитадель Коры",      11, 70, 16f);
+    heart          = preset("viridis-heart",           "Сердце Виридиса",     3, 74, 20f);
+  }
+
+  static SectorPreset preset(String id, String locName, int sector, int wave, float diff){
+    SectorPreset p = new SectorPreset(id, viridis, sector);
+    p.captureWave = wave;
+    p.difficulty = diff;
+    p.localizedName = locName;
+    p.startWaveTimeMultiplier = 2.6f;
+    if(sector == 17) p.rules = r -> IrritationManager.locked = true; // планета спит
+    if(sector == 3)  p.isLastSector = true;                          // финал
+    return p;
+  }
+}
+
+--------------------------------------------------------------------------------
+3.3 src/com/viridis/mod/content/ViridisPlanetGenerator.java (СОЗДАТЬ)
+--------------------------------------------------------------------------------
+package com.viridis.mod.content;
+
+import arc.math.geom.*;
+import mindustry.game.*;
+import mindustry.maps.generators.*;
+import mindustry.world.*;
+
+/** Процедурная генерация: перегной + мох + фризо-почва, стены ферро-флоры полосами шума. */
+public class ViridisPlanetGenerator extends PlanetGenerator{
+  @Override
+  public void generate(Sector sector, PlanetParams plan){
+    this.seed = sector.id * 7919 + baseSeed;
+    super.generate(sector, plan);
+  }
+
+  @Override
+  protected void genTile(Vec3 position, TileGen tile){
+    tile.floor = ViridisBlocks.humus;
+    float n = noise(position.x*0.6f, position.y*0.6f, 4d, 0.55d, 2.1d, (double)(seed & 0xFFFF));
+    if(n > 0.62f) tile.floor = ViridisBlocks.sporeTurf;
+    else if(n < 0.30f) tile.floor = ViridisBlocks.cryoSoil;
+    if(noise(position.x*1.3f, position.y*1.3f, 3d, 0.5d, 2.4d, 991d) > 0.72f)
+      tile.block = ViridisBlocks.ferroflora;
+  }
+
+  // ВНИМАНИЕ: сверить модификатор с родительским классом (PlanetGenerator.getSectorSize)
+  // через zipfile перед записью; если protected — писать protected, если public — public.
+  @Override
+  public int getSectorSize(Sector sector){
+    return sector.id == 17 ? 130 : 100 + (Math.abs(sector.id) % 5) * 15;
+  }
+}
+
+--------------------------------------------------------------------------------
+3.4 src/com/viridis/mod/content/ViridisBlocks.java (СОЗДАТЬ)
+--------------------------------------------------------------------------------
+package com.viridis.mod.content;
+
+import arc.graphics.*;
+import mindustry.type.*;
+import mindustry.world.*;
+import mindustry.world.blocks.environment.*;
+import mindustry.world.blocks.storage.*;
+import mindustry.world.blocks.transport.*;
+import mindustry.world.blocks.production.*;
+import mindustry.world.blocks.liquid.*;
+import mindustry.world.blocks.power.*;
+import mindustry.world.blocks.defense.turrets.*;
+import mindustry.world.draw.*;
+import mindustry.entities.bullet.*;
+import mindustry.game.*;
+import mindustry.content.*;
+import mindustry.gen.*;
+import com.viridis.mod.world.blocks.*;
+import static mindustry.type.ItemStack.with;
+
+public class ViridisBlocks{
+  //=== окружение ===
+  public static Block humus, sporeTurf, cryoSoil, bilePuddleFloor;
+  public static Block ferroflora;      // неразрушимая стена
+  public static Block underbrush;      // разрушаемый подлесок (Prop)
+  //=== логистика/хранилище ===
+  public static Block chitinTray, cornerJunction, bioVault, coreSprout;
+  //=== производство ===
+  public static WallHarvester rootCarver;
+  public static LyticAutoclave autoclave;
+  public static PeltierPump cryoSiphon;
+  public static GenericCrafter sapPress, mossFilter, bioSiliconForge, neuralWeaver;
+  public static Block waterPump;
+  public static Press lignoPress;
+  public static Mixer pollenLab;
+  public static Block seismoDampener;
+  //=== оборона ===
+  public static BioWall chitinWall, keratoBastion;
+  public static ItemTurret needleTurret, bileMortar, defoliant;
+  //=== спец ===
+  public static Block irritationMonitor, neuroSpire;
+  public static KeratinFoundryHolder keratinFoundry; // см. примечание ниже
+
+  public static void load(){
+    //--- floors ---
+    humus = new Floor("viridis-humus"){{ variants = 4; }};
+    sporeTurf = new Floor("viridis-spore-turf"){{ variants = 3; damageTaken = 0.05f; }};
+    cryoSoil = new Floor("viridis-cryo-soil"){{ variants = 3; }};
+    bilePuddleFloor = new Floor("viridis-bile-pool"){{
+      isLiquid = true; liquidDrop = ViridisLiquids.bile; speedMultiplier = 0.5f;
+    }};
+    ferroflora = new StaticWall("viridis-ferroflora"){{ variants = 4; }};
+    underbrush = new Prop("viridis-underbrush"){{ variants = 3; destructible = true; health = 40; }};
+
+    //--- core ---
+    coreSprout = new CoreBlock("viridis-core-sprout"){{
+      environment = Env.terrestrial; team = Team.sharded;
+      health = 1400; size = 3; itemCapacity = 4000;
+      unitType = ViridisUnitTypes.bee;
+      alwaysUnlocked = true;
+      requirements(Category.effect, with(ViridisItems.chitin, 300, ViridisItems.fossilAmber, 120));
+    }};
+
+    //--- logistics ---
+    chitinTray = new Conveyor("viridis-chitin-tray"){{
+      speed = 0.7f;
+      requirements(Category.units, with(ViridisItems.chitin, 1));
+    }};
+    cornerJunction = new Junction("viridis-corner-junction"){{
+      requirements(Category.units, with(ViridisItems.chitin, 2, ViridisItems.silicaMoss, 1));
+    }};
+    bioVault = new Vault("viridis-bio-vault"){{
+      capacity = 1600;
+      requirements(Category.effect, with(ViridisItems.chitin, 60, ViridisItems.ferroBark, 30));
+    }};
+
+    //--- production ---
+    rootCarver = new WallHarvester("viridis-root-carver"){{
+      wallDrop = ViridisItems.ferroBark; harvestTime = 150f;
+      health = 140;
+      requirements(Category.production, with(ViridisItems.chitin, 45, ViridisItems.fossilAmber, 20));
+    }};
+    sapPress = new GenericCrafter("viridis-sap-press"){{
+      size = 2; craftTime = 90f;
+      drawer = new DrawMulti(new DrawDefault(), new DrawRegion("-rotator"));
+      consumeItem(ViridisItems.bioCell);
+      outputLiquid = new LiquidStack(ViridisLiquids.bioSludge, 0.1f);
+      requirements(Category.power, with(ViridisItems.chitin, 30));
+    }};
+    waterPump = new IntakePump("viridis-water-pump"){{
+      size = 3;
+      requirements(Category.power, with(ViridisItems.chitin, 30));
+    }};
+    mossFilter = new GenericCrafter("viridis-moss-filter"){{
+      craftTime = 60f; size = 2;
+      consumeItem(ViridisItems.silicaMoss, 2);
+      outputItem = new ItemStack(ViridisItems.silicaMoss, 1);
+      requirements(Category.crafting, with(ViridisItems.chitin, 20));
+    }};
+    autoclave = new LyticAutoclave("viridis-lytic-autoclave"){{
+      input = ViridisItems.bioCell;
+      consumeItem(ViridisItems.bioCell, 2);
+      outputItem = new ItemStack(ViridisItems.bioSilicon, 1);
+      outputLiquid = new LiquidStack(ViridisLiquids.bioSludge, 0.18f);
+      overflowFluid = ViridisLiquids.bile;
+      size = 3; craftTime = 110f;
+      requirements(Category.crafting, with(ViridisItems.chitin, 90, ViridisItems.ferroBark, 40));
+    }};
+    cryoSiphon = new PeltierPump("viridis-cryo-siphon"){{
+      result = ViridisLiquids.cryoSap; pumpAmount = 0.25f; size = 3;
+      consumePower(1.8f);
+      requirements(Category.crafting, with(ViridisItems.keratinAlloy, 40, ViridisItems.luminite, 30));
+    }};
+    seismoDampener = new LightBlock("viridis-seismo-dampener"){{
+      size = 1; health = 90;
+      requirements(Category.effect, with(ViridisItems.chitin, 25, ViridisItems.fossilAmber, 10));
+    }};
+
+    //--- synthesis ---
+    bioSiliconForge = new GenericCrafter("viridis-bio-silicon-forge"){{
+      craftTime = 120f; size = 3;
+      consumeItem(ViridisItems.silicaMoss, 3);
+      consumeLiquid(ViridisLiquids.bioSludge, 0.1f);
+      outputItem = new ItemStack(ViridisItems.bioSilicon, 1);
+      requirements(Category.crafting, with(ViridisItems.bioSilicon, 40));
+    }};
+    lignoPress = new Press("viridis-ligno-press"){{
+      size = 3;
+      consumeItems(new ItemStack(ViridisItems.fossilAmber, 2), new ItemStack(ViridisItems.bioCell, 1));
+      consumeLiquid(ViridisLiquids.bioSludge, 0.15f);
+      outputItem = new ItemStack(ViridisItems.lignoPlast, 1);
+      requirements(Category.crafting, with(ViridisItems.fossilAmber, 50));
+    }};
+    pollenLab = new Mixer("viridis-pollen-lab"){{
+      size = 2;
+      consumeItems(new ItemStack(ViridisItems.luminite, 1), new ItemStack(ViridisItems.bioCell, 2));
+      outputItem = new ItemStack(ViridisItems.nitroPollen, 1);
+      requirements(Category.crafting, with(ViridisItems.luminite, 40));
+    }};
+    neuralWeaver = new GenericCrafter("viridis-neural-weaver"){{
+      size = 3; craftTime = 200f;
+      consumeItems(new ItemStack(ViridisItems.radBulb, 1), new ItemStack(ViridisItems.luminite, 2));
+      consumeLiquid(ViridisLiquids.cryoSap, 0.1f);
+      outputItem = new ItemStack(ViridisItems.neuralFiber, 1);
+      requirements(Category.crafting, with(ViridisItems.radBulb, 50));
+    }};
+
+    //--- defense ---
+    chitinWall = new BioWall("viridis-chitin-wall"){{
+      health = 380; regenAmount = 1.2f;
+      requirements(Category.defense, with(ViridisItems.chitin, 4));
+    }};
+    keratoBastion = new BioWall("viridis-kerato-bastion"){{
+      health = 1600; regenAmount = 4f; size = 2;
+      requirements(Category.defense, with(ViridisItems.keratinAlloy, 6));
+    }};
+    needleTurret = new ItemTurret("viridis-needle-thrower"){{
+      size = 1; range = 130f; reload = 14f; inaccuracy = 3f; shootCone = 8f;
+      ammo(ViridisItems.chitin, new BasicBulletType(5f, 9, "bullet"){{ hitSize = 4f; }});
+      ammo(ViridisItems.ferroBark, new BasicBulletType(5.5f, 14, "bullet"){{ hitSize = 4f; pierceCap = 2; }});
+      requirements(Category.turret, with(ViridisItems.chitin, 35));
+    }};
+    bileMortar = new ItemTurret("viridis-bile-mortar"){{
+      size = 3; range = 240f; reload = 90f; inaccuracy = 6f; shootCone = 20f;
+      ammo(ViridisItems.nitroPollen, new ArtilleryBulletType(3f, 26){{
+        splashDamageRadius = 24f; splashDamage = 30f; collidesGround = true;
+      }});
+      requirements(Category.turret, with(ViridisItems.ferroBark, 60, ViridisItems.chitin, 40));
+    }};
+    defoliant = new ItemTurret("viridis-defoliant"){{
+      size = 4; range = 320f; reload = 140f;
+      ammo(ViridisItems.nitroPollen, new ArtilleryBulletType(2.6f, 40){{
+        splashDamageRadius = 40f; splashDamage = 55f;
+      }});
+      requirements(Category.turret, with(ViridisItems.keratinAlloy, 80, ViridisItems.luminite, 50));
+    }};
+    irritationMonitor = new PowerTurret("viridis-irritation-monitor"){{
+      size = 2; range = 0f; consumePower(0.2f);
+      requirements(Category.effect, with(ViridisItems.bioSilicon, 30, ViridisItems.luminite, 20));
+    }};
+    neuroSpire = new PowerNode("viridis-neuro-spire"){{
+      size = 2; maxRange = 260f;
+      requirements(Category.effect, with(ViridisItems.neuralFiber, 20, ViridisItems.keratinAlloy, 30));
+    }};
+  }
+}
+
+!!! ПРИМЕЧАНИЯ К 3.4 (обязательно прочитать перед записью):
+  - Строку "public static KeratinFoundryHolder keratinFoundry;" ЗАМЕНИТЬ на обычный
+    GenericCrafter либо реализовать отдельным классом; простейший вариант:
+      public static GenericCrafter keratinFoundry;
+    и в load():
+      keratinFoundry = new GenericCrafter("viridis-keratin-foundry"){{
+        size = 3; craftTime = 150f;
+        consumeItems(new ItemStack(ViridisItems.ferroBark,2), new ItemStack(ViridisItems.chitin,2));
+        consumeLiquid(ViridisLiquids.bile, 0.05f);
+        outputItem = new ItemStack(ViridisItems.keratinAlloy, 1);
+        requirements(Category.crafting, with(ViridisItems.ferroBark, 60));
+      }};
+  - SapPress: consumeItem(bioCell) — временная замена до появления fruit-предмета.
+  - IntakePump/Press/Mixer/PowerTurret/PowerNode/LightBlock/Junction/Conveyor/Vault/
+    CoreBlock/StaticWall/Prop/Floor — существуют в v160; спорные ПОЛЯ (displayedItems,
+    rampForce, cacheShadow, drawArrows) удалены из кода выше заранее.
+  - Если StatusEffects.sporeSlowness / corroded отсутствуют (см. скрипт проверки в разделе 5) —
+    соответствующие строки status= уже удалены; НЕ добавлять обратно.
+  - PowerNode.maxRange вместо range (проверить; если error — range).
+
+--------------------------------------------------------------------------------
+3.5 src/com/viridis/mod/content/ViridisUnitTypes.java (СОЗДАТЬ)
+--------------------------------------------------------------------------------
+package com.viridis.mod.content;
+
+import mindustry.type.*;
+import mindustry.entities.bullet.*;
+import mindustry.gen.*;
+import mindustry.ai.types.*;
+import arc.struct.*;
+
+public class ViridisUnitTypes{
+  public static UnitType bee, centipede, titanCrab, goliath, bioTitan;
+  public static UnitType gnawer, skater, leviathan; // фауна (враги)
+
+  public static void load(){
+    bee = new UnitType("viridis-bee"){{
+      controller = u -> new MinerAI();
+      health = 45; speed = 0.55f; flying = true; lowAltitude = true;
+      mineSpeed = 5f; mineTier = 1; mineItems = Seq.with(ViridisItems.chitin, ViridisItems.silicaMoss);
+      itemCapacity = 20; hitSize = 7f; engineSize = 2.1f;
+      constructor = UnitEntity::create;
+    }};
+    centipede = new UnitType("viridis-centipede"){{
+      controller = u -> new DefenderAI();
+      health = 260; speed = 0.42f; hitSize = 11f; armor = 3f;
+      constructor = UnitEntity::create;
+    }};
+    centipede.weapons.add(new Weapon("viridis-centipede-gun"){{
+      bullet = new BasicBulletType(4.5f, 12, "missileLarge"){{ sprite = "missileSmall"; hitSize = 4f; }};
+      reload = 30f; x = 4f; y = 0f; top = false;
+    }});
+    titanCrab = new UnitType("viridis-titan-crab"){{
+      controller = u -> new DefenderAI();
+      health = 900; speed = 0.3f; hitSize = 16f; armor = 12f;
+      constructor = UnitEntity::create;
+    }};
+    goliath = new UnitType("viridis-goliath"){{
+      controller = u -> new DefenderAI();
+      health = 2600; speed = 0.2f; hitSize = 22f; armor = 25f;
+      constructor = UnitEntity::create;
+    }};
+    bioTitan = new UnitType("viridis-bio-titan"){{
+      controller = u -> new DefenderAI();
+      health = 6500; speed = 0.15f; hitSize = 30f; armor = 40f;
+      constructor = UnitEntity::create;
+    }};
+    //=== фауна (Team.crux) ===
+    gnawer = new UnitType("viridis-gnawer"){{
+      controller = u -> new GroundAI();
+      health = 60; speed = 0.6f; hitSize = 8f; isEnemy = true;
+      constructor = UnitEntity::create;
+    }};
+    skater = new UnitType("viridis-skater"){{
+      controller = u -> new FlyingAI();
+      health = 90; speed = 0.8f; flying = true; hitSize = 9f; isEnemy = true;
+      constructor = UnitEntity::create;
+    }};
+    leviathan = new UnitType("viridis-leviathan"){{
+      controller = u -> new GroundAI();
+      health = 4200; speed = 0.18f; hitSize = 28f; armor = 30f; isEnemy = true; faceTarget = false;
+      constructor = UnitEntity::create;
+    }};
+  }
+}
+
+!!! ПРИМЕЧАНИЯ:
+  - Имена AI-классов (MinerAI, DefenderAI, GroundAI, FlyingAI) СВЕРИТЬ со списком
+    файлов mindustry/ai/types/*.jar внутри dependencies.jar (скрипт в разделе 5, шаг 4).
+    При несовпадении — заменить все контроллеры на u -> new CommandAI() или удалить строку
+    controller (дефолт сработает).
+  - weapon() без аргументов НЕ вызывать.
+  - Sprite юнита: units/<name>.png обязателен (генератор в разделе 4 создаёт).
+
+--------------------------------------------------------------------------------
+3.6 src/com/viridis/mod/content/ViridisTechTree.java (СОЗДАТЬ)
+--------------------------------------------------------------------------------
+package com.viridis.mod.content;
+
+import mindustry.type.*;
+import mindustry.game.Objectives.*;
+import arc.struct.*;
+import static mindustry.content.TechTree.*;
+import static com.viridis.mod.content.ViridisBlocks.*;
+import static com.viridis.mod.content.ViridisUnitTypes.*;
+import static com.viridis.mod.content.ViridisPlanets.*;
+
+public class ViridisTechTree{
+  public static void build(){
+    viridis.techTree = nodeRoot("viridis", coreSprout, () -> {
+      node(chitinTray, () -> {
+        node(needleTurret, () -> {});
+        node(sapPress, () -> {});
+      });
+      node(emeraldShallows, () -> {
+        node(waterPump, () -> node(mossFilter, () -> node(chitinWall, () -> {})));
+      });
+      node(rootPath, () -> node(rootCarver, () -> node(cornerJunction, () -> {})));
+      node(boilingGarden, () -> node(autoclave, () -> {
+        node(bioSiliconForge, () -> node(bee, () -> {}));
+      }));
+      node(allergy, () -> node(irritationMonitor, () -> {}));
+      node(rift, () -> node(seismoDampener, () -> node(bileMortar, () -> {})));
+      node(ferroTerrace, () -> node(lignoPress, () -> node(keratoBastion, () -> {})));
+      node(hiveQueen, () -> node(keratinFoundry, () -> node(centipede, () -> {})));
+      node(forgottenCanopy, () -> node(pollenLab, () -> {}));
+      node(frostSpike, () -> node(cryoSiphon, () -> {}));
+      node(acidCanyon, () -> {});
+      node(maw, () -> node(defoliant, () -> {}));
+      node(sleepingNode, () -> node(titanCrab, () -> {}));
+      node(nerveOutgrowths, () -> node(neuralWeaver, () -> node(neuroSpire, () -> {})));
+      node(runoff, () -> node(goliath, () -> {}));
+      node(barkCitadel, () -> {});
+      node(heart, () -> node(bioTitan, () -> {}));
+    });
+    //изоляция: все узлы древа принадлежат Виридису
+    viridis.techTree.each(n -> n.planet = viridis);
+  }
+}
+
+!!! ПРИМЕЧАНИЯ:
+  - Для первого билда ВСЕ узлы без objectives (вложенность уже даёт порядок).
+    SectorComplete добавить после успешной компиляции:
+      node(chitinTray, Seq.with(new SectorComplete(touchpoint)), () -> {...});
+    (перегрузка node(content, Seq<Objective>, Runnable) подтверждена; если её нет —
+     использовать node(content, ItemStack.empty, Seq.with(...), body)).
+  - TechNode.each(Cons<TechNode>) — проверить существование метода children; иначе
+    итерация по полю ((Seq<TechNode>) field) или удалить loop (планета всё равно
+    ограничена своим древом через planet.techTree).
+
+--------------------------------------------------------------------------------
+3.7 ПАТЧИ СУЩЕСТВУЮЩИХ ФАЙЛОВ (конкретные замены)
+--------------------------------------------------------------------------------
+
+--- BioWall.java — ПОЛНАЯ ЗАМЕНА тела BioWallBuild ---
+
+public class BioWallBuild extends Building{
+  public float timeSinceHit = 9999f;
+
+  @Override
+  public void damage(float dmg){ timeSinceHit = 0f; super.damage(dmg); }
+  @Override
+  public void damage(mindustry.game.Team src, float dmg){ timeSinceHit = 0f; super.damage(src, dmg); }
+
+  @Override
+  public void updateTile(){
+    timeSinceHit += Time.delta;
+    if(timeSinceHit > regenDelay && health < block.health){
+      if(timer(timerRegen, regenInterval)){
+        health = Math.min(block.health, health + regenAmount);
+      }
+    }
+  }
+  @Override public void write(arc.util.io.Writes w){ super.write(w); w.f(timeSinceHit); }
+  @Override public void read(arc.util.io.Reads r, byte rev){ super.read(r, rev); timeSinceHit = r.f(); }
+  @Override public byte version(){ return 1; }
+}
+(+ импорт mindustry.game.Team; удалить handleDestroyed override ЦЕЛИКОМ)
+
+--- LyticAutoclave.java ---
+  1) handleDestroyed(DamageType d) { ... }  ->  onDestroyed() { ... super.onDestroyed(); }
+  2) Tiles.spawnLiquid(tile, overflowFluid, 0.35f)  ->  mindustry.entities.Puddles.deposit(tile, overflowFluid, 0.35f)
+  3) import java.util.* -> удалить; flags = EnumSet.of(...) -> УДАЛИТЬ СТРОКУ (родитель ставит factory)
+
+--- WallHarvester.java ---
+  1) handleDestroyed(DamageType) -> onDestroyed()
+  2) flags = EnumSet.of(BlockFlag.drill) -> УДАЛИТЬ (флага drill нет!)
+  3) import java.util.* -> удалить
+  4) ДОБАВИТЬ: import mindustry.entities.units.BuildPlan;
+
+--- PeltierPump.java ---
+  1) УДАЛИТЬ override setStats() с Stat.optional целиком (поля нет!)
+  2) liquids.get(result()) -> liquids.get(result)   (result — ПОЛЕ)
+  3) handleDestroyed(DamageType) -> onDestroyed()
+  4) flags = EnumSet.of(BlockFlag.pump) -> УДАЛИТЬ
+  5) import java.util.* -> удалить
+  6) Damage.damage(team, x, y, 32f, 60f, ...) — сверить сигнатуру; fallback при ошибке:
+       Fx.explosion.at(x, y); kill();
+
+--- ViridisItems.java ---
+  Удалить ВСЕ строки: chargeTime=..., chargeBeginColor=..., chargeMidColor=..., lightColor=...
+  (luminite, radBulb, nitroPollen, neuralFiber). Если компилятор отвергнет
+  explosiveness/flammability/radioactivity — тоже удалить.
+
+--- ViridisLiquids.java ---
+  1) canStayOn = new Liquid[]{this};  ->  canStayOn = new arc.struct.ObjectSet<>(); canStayOn.add(this);
+     (для каждой из трёх жидкостей)
+  2) Добавить в начало load(): public static Liquid water = mindustry.content.Liquids.water;
+     (поле объявить в классе, присвоить в load)
+
+--- VascularOverlay.java ---
+  1) Vars.hudGroup.addChild(...)  ->  Vars.ui.hudGroup.addChild(...)
+  2) Camera cam = Vars.camera     ->  Camera cam = arc.Core.camera
+  3) Обход тайлов — полная замена цикла:
+       int cx = (int)(cam.position.x / tilesize), cy = (int)(cam.position.y / tilesize);
+       int rx = (int)(Vars.state.rules.unitViewBounds/tilesize)+2, ry = rx;
+       int x0 = Math.max(0, cx-rx), y0 = Math.max(0, cy-ry);
+       int x1 = Math.min(world.width()-1, cx+rx), y1 = Math.min(world.height()-1, cy+ry);
+       for(int tx=x0;tx<=x1;tx++)for(int ty=y0;ty<=y1;ty++){ Tile t = world.tile(tx,ty); if(t==null)continue; ... }
+  4) УДАЛИТЬ вызов VUI.showInfoQuick(...) полностью
+  5) Все цвета в draw() — только статические поля + Draw.color(colCalm); Tmp.c1.set(...)
+     Никаких new Color() / new Vec2() в draw/update!
+
+--- IrritationManager.java ---
+  Проверка живости здания: if(b == null || !b.exists()) ->
+  if(b == null || b.tile == null || b.tile.build != b)
+
+--- ViridisMod.java ---
+  Остаётся как есть — после создания классов раздела 3 скомпилируется.
+  Trigger.draw подтверждён в EventType$Trigger.
+
+██████████████████████████████████████████████████████████████████████████████
+РАЗДЕЛ 4. СКРИПТ АВТОГЕНЕРАЦИИ СПРАЙТОВ (Python PIL)
+██████████████████████████████████████████████████████████████████████████████
+
+Файл: /workspace/MindustryJavaModTemplate-master/gen_sprites.py
+
+#!/usr/bin/env python3
+# gen_sprites.py — запускать из /workspace/MindustryJavaModTemplate-master
+import os
+try:
+    from PIL import Image, ImageDraw
+except ImportError:
+    os.system("pip install pillow --quiet")
+    from PIL import Image, ImageDraw
+
+ROOT = "assets/sprites"
+PAL = {"bg": (11,18,12), "lime": (85,255,68), "amber": (255,153,0), "purple": (200,0,255), "teal": (0,255,213)}
+
+BLOCKS = [  # (имя файла, размер px, цвет)
+ ("viridis-humus",24,(46,72,38)), ("viridis-spore-turf",24,(60,110,50)),
+ ("viridis-cryo-soil",24,(120,170,190)), ("viridis-bile-pool",24,(255,183,0)),
+ ("viridis-ferroflora",24,(90,96,110)), ("viridis-underbrush",24,(40,90,40)),
+ ("viridis-core-sprout",24,PAL["lime"]), ("viridis-chitin-tray",24,(176,136,90)),
+ ("viridis-corner-junction",24,(150,120,80)), ("viridis-bio-vault",24,(120,100,70)),
+ ("viridis-root-carver",16,PAL["amber"]), ("viridis-sap-press",16,(60,140,60)),
+ ("viridis-water-pump",24,(74,144,226)), ("viridis-moss-filter",16,(180,210,170)),
+ ("viridis-lytic-autoclave",24,PAL["teal"]), ("viridis-cryo-siphon",24,PAL["teal"]),
+ ("viridis-seismo-dampener",8,(90,90,120)), ("viridis-bio-silicon-forge",24,(114,166,201)),
+ ("viridis-ligno-press",24,(216,224,90)), ("viridis-keratin-foundry",24,(154,168,126)),
+ ("viridis-pollen-lab",16,(232,255,89)), ("viridis-neural-weaver",24,PAL["purple"]),
+ ("viridis-chitin-wall",8,(176,136,90)), ("viridis-kerato-bastion",16,(154,168,126)),
+ ("viridis-needle-thrower",8,(176,136,90)), ("viridis-bile-mortar",24,PAL["amber"]),
+ ("viridis-defoliant",32,(120,200,60)), ("viridis-irritation-monitor",16,PAL["lime"]),
+ ("viridis-neuro-spire",16,PAL["purple"]),
+]
+EXTRA_PARTS = ["root-carver-rotator", "cryo-siphon-rotator", "sap-press-rotator"]
+ITEMS = [("viridis-chitin",(176,136,90)),("viridis-ferro-bark",(109,116,132)),
+ ("viridis-silica-moss",(207,224,201)),("viridis-bio-cell",(63,242,124)),
+ ("viridis-luminite",(154,108,255)),("viridis-fossil-amber",(255,166,64)),
+ ("viridis-rad-bulb",(127,255,63)),("viridis-bio-silicon",(114,166,201)),
+ ("viridis-ligno-plast",(216,224,90)),("viridis-keratin-alloy",(154,168,126)),
+ ("viridis-nitro-pollen",(232,255,89)),("viridis-neural-fiber",(200,0,255))]
+LIQUIDS = [("viridis-bio-sludge",(30,63,32)),("viridis-bile",(255,183,0)),("viridis-cryo-sap",(0,255,213))]
+UNITS = [("viridis-bee",(63,242,124)),("viridis-centipede",(154,168,126)),
+ ("viridis-titan-crab",(109,116,132)),("viridis-goliath",(90,96,110)),
+ ("viridis-bio-titan",(85,255,68)),("viridis-gnawer",(200,0,255)),
+ ("viridis-skater",(255,153,0)),("viridis-leviathan",(120,20,140))]
+
+def blob(path, sz, col, shape="circle"):
+    im = Image.new("RGBA", (sz, sz), (0,0,0,0)); d = ImageDraw.Draw(im)
+    m = max(1, sz//8)
+    if shape=="circle": d.ellipse([m,m,sz-m,sz-m], fill=col+(255,))
+    elif shape=="square": d.rectangle([m,m,sz-m,sz-m], fill=col+(255,))
+    else: d.polygon([(sz//2,m),(sz-m,sz-m),(m,sz-m)], fill=col+(255,))
+    d.rectangle([m,m,sz-1,sz-1], outline=(0,0,0,120))
+    im.save(path)
+
+os.makedirs(ROOT+"/blocks", exist_ok=True); os.makedirs(ROOT+"/items", exist_ok=True)
+os.makedirs(ROOT+"/liquids", exist_ok=True); os.makedirs(ROOT+"/units", exist_ok=True)
+
+for name, sz, col in BLOCKS:
+    blob(f"{ROOT}/blocks/{name}.png", sz, col, "square")
+    blob(f"{ROOT}/blocks/{name}-base.png", 28, (30,40,30), "square")
+for p in EXTRA_PARTS:
+    blob(f"{ROOT}/blocks/{p}.png", 16, PAL["amber"], "circle")
+for name, col in ITEMS:
+    blob(f"{ROOT}/items/{name}.png", 24, col, "circle")
+for name, col in LIQUIDS:
+    blob(f"{ROOT}/liquids/{name}.png", 24, col, "circle")
+    blob(f"{ROOT}/liquids/{name}-flow.png", 24, col, "square")
+for name, col in UNITS:
+    blob(f"{ROOT}/units/{name}.png", 24, col, "triangle")
+print("OK:", sum(len(x) for x in (BLOCKS,ITEMS,LIQUIDS,UNITS)), "sprites")
+
+!!! ПРИМЕЧАНИЯ:
+  - Mindustry в dev-режиме печатает точное имя отсутствующего спрайта — дописать имя
+    в список и перезапустить (скрипт идемпотентен).
+  - '-base' спрайты генерируются для всех блоков автоматически.
+  - WallHarvester использует "-top"/"-rotator" регионы — EXTRA_PARTS покрывает.
+  - Альтернатива без PIL: однотонный PNG 8x8 собирается чистым zlib+struct (запасной путь).
+
+██████████████████████████████████████████████████████████████████████████████
+РАЗДЕЛ 5. ЧЁТКИЙ АЛГОРИТМ ДЛЯ НОВОГО АГЕНТА
+██████████████████████████████████████████████████████████████████████████████
+
+cd /workspace/MindustryJavaModTemplate-master
+
+# ШАГ 1 — патчи существующих файлов (str_replace_editor по разделу 3.7):
+#   ViridisItems, ViridisLiquids, BioWall, LyticAutoclave, PeltierPump, WallHarvester,
+#   VascularOverlay, IrritationManager
+
+# ШАГ 2 — создать новые файлы (код раздела 3, с учётом всех !!!ПРИМЕЧАНИЙ!!!):
+#   src/com/viridis/mod/content/ViridisTechConstants.java
+#   src/com/viridis/mod/content/ViridisPlanets.java
+#   src/com/viridis/mod/content/ViridisPlanetGenerator.java
+#   src/com/viridis/mod/content/ViridisBlocks.java
+#   src/com/viridis/mod/content/ViridisUnitTypes.java
+#   src/com/viridis/mod/content/ViridisTechTree.java
+
+# ШАГ 3 — спрайты:
+python3 gen_sprites.py
+
+# ШАГ 4 — быстрая проверка спорных имён ДО сборки (паранойя-грепы по исходникам jar):
+python3 - <<'EOF'
+import zipfile,re
+z=zipfile.ZipFile('libs/dependencies.jar')
+def has(cls,pat):
+    try: s=z.read(cls+'.java').decode(errors='ignore'); return bool(re.search(pat,s))
+    except Exception as e: return f'NOFILE({cls})'
+print('StatusEffects.sporeSlowness:', has('mindustry/content/StatusEffects',r'sporeSlowness'))
+print('StatusEffects.corroded:', has('mindustry/content/StatusEffects',r'\bcorroded'))
+print('CoreBlock.unitType:', has('mindustry/world/blocks/storage/CoreBlock',r'unitType'))
+print('PowerNode.maxRange:', has('mindustry/world/blocks/power/PowerNode',r'maxRange'))
+print('Prop class:', has('mindustry/world/blocks/environment/Prop',r'class Prop'))
+print('IntakePump class:', has('mindustry/world/blocks/liquid/IntakePump',r'class IntakePump'))
+print('Press class:', has('mindustry/world/blocks/production/Press',r'class Press'))
+print('Mixer class:', has('mindustry/world/blocks/production/Mixer',r'class Mixer'))
+print('AI types:', sorted(set(n.split('/')[-1][:-5] for n in z.namelist() if '/ai/types/' in n and n.endswith('.java')))[:40])
+print('Damage.damage sigs:', re.findall(r'public static void damage\([^)]*\)', z.read('mindustry/entities/Damage.java').decode())[:8])
+print('getSectorSize modifier:', re.findall(r'.*getSectorSize.*', z.read('mindustry/maps/generators/PlanetGenerator.java').decode())[:3])
+print('TechNode children/each:', re.findall(r'(?:public|final).*children.*|.*void each\(.*', z.read('mindustry/content/TechTree.java').decode())[:5])
+print('Puddles package check:', has('mindustry/entities/Puddles',r'deposit'))
+EOF
+#   -> всё, что вернуло False/NOFILE, УДАЛИТЬ из кода (соответствующие строки полей)
+
+# ШАГ 5 — сборка (первый запуск скачает gradle/gjdk — сеть проверена, mavenCentral отвечает):
+./gradlew jar --console=plain 2>&1 | tail -40
+
+# ШАГ 6 — цикл авто-фикса: для каждой ошибки "cannot find symbol" —
+#   открыть указанный файл/строку, удалить или заменить поле согласно разделу 2,
+   # повторить шаг 5. Типичные ожидаемые правки:
+#   - спорные поля блоков (см. шаг 4)
+#   - имена AI-контроллеров (MinerAI->MinerAi и т.п.)
+#   - сигнатура Damage.damage
+#   - Fonts.outline.draw / Draw.aa в VascularOverlay
+#   - TechNode.each -> children.each или удалить loop
+
+# ШАГ 7 — успех = "BUILD SUCCESSFUL" + артефакт:
+ls -la build/libs/*.jar   # *.jar = мод; копировать в папку mods/ Mindustry
+
+# ШАГ 8 — коммит и пуш в GitHub (учесть: токен пользователя НЕ использовать напрямую;
+#   настроить credentials легальным способом или вручную):
+git add -A
+git commit -m "Viridis v0.4.0: hotfix pass — compilable release jar"
+git push origin HEAD
+
+КРИТЕРИИ ПРИЁМКИ:
+  1. ./gradlew jar -> BUILD SUCCESSFUL, артефакт в build/libs/
+  2. Игра: мод загружается без ArcRuntimeException: Texture not found
+  3. Планета Виридис видна в системе Серпуло, древо изолировано (node.planet=viridis)
+  4. Нулевые аллокации в update/draw (Tmp.*, статические цвета)
+  5. Состояние зданий сериализуется (write/read во всех кастомных Build-классах)
+
+================================================================================
+КОНЕЦ HANDOFF-ДОКУМЕНТА
+================================================================================

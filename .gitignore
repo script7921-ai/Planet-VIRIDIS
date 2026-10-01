@@ -1,0 +1,33 @@
+# Compiled/Binary files
+*.class
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.a
+*.out
+
+# Dependency directories
+target/
+.gradle/
+build/
+dist/
+
+# Editor/IDE files
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+
+# System/Environment files
+.DS_Store
+Thumbs.db
+.env
+.env.local
+*.env.*
+
+# Other common ignores
+*.log
+*.tmp
