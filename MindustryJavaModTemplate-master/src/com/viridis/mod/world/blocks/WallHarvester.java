@@ -1,18 +1,16 @@
 package com.viridis.mod.world.blocks;
 
-import arc.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.annotations.Annotations.*;
 import mindustry.entities.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
-import mindustry.ui.*;
+import com.viridis.mod.content.ViridisFx;
 import mindustry.world.*;
 import mindustry.world.blocks.environment.*;
 import mindustry.world.meta.*;
@@ -33,10 +31,8 @@ public class WallHarvester extends Block{
   /** Дельта раздражения в секунду при активной работе. */
   public float irritationPerSecond = 0.4f;
   public float rotateSpeed = 2.4f;
-  public Effect updateEffect = Fx.mineWallSmall;
+  public Effect updateEffect = ViridisFx.sapBurst;
   public float updateEffectChance = 0.03f;
-  public @Load("@-top") TextureRegion topRegion;
-  public @Load("@-rotator") TextureRegion rotatorRegion;
 
   public final int timerVib = timers++;
 
@@ -73,14 +69,8 @@ public class WallHarvester extends Block{
   }
 
   @Override
-  public TextureRegion[] icons(){
-    return new TextureRegion[]{region, topRegion};
-  }
-
-  @Override
   public void drawPlanRegion(BuildPlan plan, Eachable<BuildPlan> list){
-    Draw.rect(region, plan.drawx(), plan.drawy());
-    Draw.rect(topRegion, plan.drawx(), plan.drawy(), plan.rotation * 90);
+    Draw.rect(region, plan.drawx(), plan.drawy(), plan.rotation * 90);
   }
 
   /** Стена ферро-флоры: неразрушимый солид-блок, являющийся стеной. */
@@ -160,17 +150,15 @@ public class WallHarvester extends Block{
 
       if(walls > 0 && shouldConsume() && (time += edelta() * warmup * eff) >= harvestTime){
         time %= harvestTime;
-        if(handleItem(null, wallDrop)){
-          produced(wallDrop);
-        }else{
-          items.add(wallDrop, 1);
-        }
+        items.add(wallDrop, 1);
+        produced(wallDrop);
         //вибрация: всплеск раздражения раз в 2 секунды активной добычи
         if(timer(timerVib, 120f)){
           IrritationManager.bump(0.004f);
         }
         if(wasVisible){
-          updateEffect.at(x + Geometry.d4x(rotation) * tilesize, y + Geometry.d4y(rotation) * tilesize, wallDrop.color);
+          Vec2 v = Geometry.d4(rotation);
+          updateEffect.at(x + v.x * tilesize, y + v.y * tilesize, wallDrop.color);
         }
       }
 
@@ -188,10 +176,10 @@ public class WallHarvester extends Block{
 
     @Override
     public void draw(){
-      Draw.rect(region, x, y);
-      Draw.rect(topRegion, x, y, rotdeg());
+      Draw.rect(region, x, y, rotdeg());
       Draw.z(Layer.blockOver + 0.1f);
-      Drawf.spinSprite(rotatorRegion, x, y, totalTime * rotateSpeed);
+      Drawf.spinSprite(region, x, y, totalTime * rotateSpeed);
+      Draw.z(Layer.block);
     }
   }
 }

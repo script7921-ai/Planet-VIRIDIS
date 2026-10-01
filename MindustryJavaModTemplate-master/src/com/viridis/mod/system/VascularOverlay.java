@@ -62,7 +62,7 @@ public class VascularOverlay{
       public boolean keyDown(InputEvent event, KeyCode key){
         if(key == KeyCode.v && Vars.state != null && Vars.state.isPlaying()){
           vascularVision = !vascularVision;
-          if(vascularVision) VUI.showInfoQuick("[green]Vascular Vision: [])ON[]";
+          if(vascularVision) VUI.showInfoQuick("[green]Vascular Vision: [])ON[]");
           return true;
         }
         return false;
