@@ -1,77 +1,75 @@
 package com.viridis.mod.content;
 
 import arc.graphics.*;
-import arc.graphics.g2d.*;
-import arc.math.*;
-import arc.util.*;
+import arc.math.geom.*;
 import mindustry.entities.*;
-import mindustry.gen.*;
-import mindustry.graphics.*;
+import mindustry.entities.effect.*;
 
 /**
- * Кастомные эффекты Виридиса. Все draw-колбэки zero-allocation:
- * цвета — статические, координаты — только примитивы.
+ * Кастомные эффекты Виридиса. Реализованы на стандартных ParticleEffect/RadialEffect —
+ * рендер внутри движка, аллокаций в рантайме нет.
  */
 public class ViridisFx{
-  //статические палитры эффектов — никаких new Color() в рантайме
-  static final Color sap = Color.valueOf("00ffd5");
-  static final Color bile = Color.valueOf("ffb700");
-  static final Color spore = Color.valueOf("c800ff");
-  static final Color lime = Color.valueOf("55ff44");
-  static final Rand rand = new Rand();
 
   /** Разрыв био-сока: бирюзовые осколки (крио-сифон, аварии). */
-  public static Effect sapBurst = Effect.dynamic(16f, 0.9f, 3f, i -> {
-    rand.setSeed(i * 97L + Time.time);
-    float ang = rand.range(360f), len = rand.random(10f, 26f);
-    Tmp.v1.trns(ang, len);
-    Draw.color(sap);
-    Lines.stroke(1.6f + i * 0.1f);
-    Lines.lineAng(Callers.get(Position.class, 0).x + Tmp.v1.x, Callers.get(Position.class, 0).y + Tmp.v1.y - len/2f, ang + 90f, len, false);
-    Draw.reset();
-  });
+  public static Effect sapBurst = new ParticleEffect(){{
+    particles = 8;
+    lifetime = 16f;
+    length = 22f; baseLength = 8f;
+    sizeFrom = 2.4f; sizeTo = 0f;
+    colorFrom = Color.valueOf("00ffd5");
+    colorTo = Color.valueOf("1e3f20");
+    line = true; strokeFrom = 1.4f; strokeTo = 0.4f;
+    lightColor = Color.valueOf("00ffd5"); lightScl = 1.6f; lightOpacity = 0.3f;
+  }};
 
   /** Всплеск желчи при аварийном сбросе автоклава. */
-  public static Effect bileSplat = Effect.dynamic(14f, 1f, 2f, i -> {
-    rand.setSeed(i * 31L + Time.time);
-    float ang = rand.range(360f), d = rand.random(4f, 20f) * (i / 14f + 0.3f);
-    Tmp.v1.trns(ang, d);
-    Draw.color(bile);
-    Fill.circle(Callers.get(Position.class, 1).x + Tmp.v1.x, Callers.get(Position.class, 1).y + Tmp.v1.y, 2.4f * (1f - i/14f));
-    Draw.reset();
-  });
+  public static Effect bileSplat = new ParticleEffect(){{
+    particles = 10;
+    lifetime = 14f;
+    length = 18f; baseLength = 4f;
+    sizeFrom = 3f; sizeTo = 0.4f;
+    colorFrom = Color.valueOf("ffb700");
+    colorTo = Color.valueOf("7a4d00");
+    lightColor = Color.valueOf("ffb700"); lightScl = 1.2f; lightOpacity = 0.25f;
+  }};
 
   /** Спорное облако (гибель фауны / прорыв корней). */
-  public static Effect sporeCloud = Effect.dynamic(26f, 1.1f, 1f, i -> {
-    rand.setSeed(i * 53L + Time.time);
-    Tmp.v1.trns(rand.range(360f), rand.random(2f, 18f));
-    Draw.color(spore);
-    Draw.alpha(0.5f * (1f - i/26f));
-    Fill.circle(Callers.get(Position.class, 2).x + Tmp.v1.x, Callers.get(Position.class, 2).y + Tmp.v1.y, 3f + i * 0.35f);
-    Draw.reset();
-  });
+  public static Effect sporeCloud = new ParticleEffect(){{
+    particles = 12;
+    lifetime = 26f;
+    length = 16f; baseLength = 3f;
+    sizeFrom = 4f; sizeTo = 0f;
+    colorFrom = Color.valueOf("c800ff");
+    colorTo = Color.valueOf("3a0b4d");
+    interp = arc.math.Interp.smooth;
+    lightColor = Color.valueOf("c800ff"); lightScl = 1.4f; lightOpacity = 0.2f;
+  }};
 
-  /** Импульс по нейро-нити (синаптический разряд). */
-  public static Effect neuralPulse = Effect.dynamic(20f, 0.8f, 1f, i -> {
-    Position s = Callers.get(Position.class, 3), t = Callers.get(Position.class, 4);
-    float f = Mathf.clamp(i / 20f);
-    Tmp.v1.set(s).lerp(t, f);
-    Draw.z(Layer.power + 1f);
-    Draw.color(lime, spore, f);
-    Fill.circle(Tmp.v1.x, Tmp.v1.y, 2.6f * (1f - f) + 0.6f);
-    Draw.reset();
-  });
+  /** Импульс по нейро-нити (синаптический разряд): radial искры лайм→пурпур. */
+  public static Effect neuralPulse = new RadialEffect(new ParticleEffect(){{
+    particles = 3;
+    lifetime = 12f;
+    length = 6f; baseLength = 2f;
+    sizeFrom = 2.2f; sizeTo = 0f;
+    colorFrom = Color.valueOf("55ff44");
+    colorTo = Color.valueOf("c800ff");
+  }}, 8, 6f, 45f);
 
   /** Корневой прорыв: зелёные шипы из земли (атака корней, С12+). */
-  public static Effect rootSpikes = Effect.dynamic(30f, 1f, 1f, i -> {
-    float fin = i / 30f;
-    Draw.color(lime, spore, fin);
-    Lines.stroke(2.5f * (1f - fin));
-    for(int s = 0; s < 6; s++){
-      float ang = s * 60f + 22f;
-      float len = 8f + fin * 20f;
-      Lines.lineAngle(Callers.get(Position.class, 5).x, Callers.get(Position.class, 5).y, ang, len * fin);
-    }
-    Draw.reset();
-  });
+  public static Effect rootSpikes = new RadialEffect(new ParticleEffect(){{
+    particles = 4;
+    lifetime = 22f;
+    length = 26f; baseLength = 6f;
+    sizeFrom = 2.6f; sizeTo = 0f;
+    line = true; strokeFrom = 2.2f; strokeTo = 0.3f;
+    colorFrom = Color.valueOf("55ff44");
+    colorTo = Color.valueOf("c800ff");
+    cone = 8f;
+  }}, 6, 0f, 60f);
+
+  /** Точка + цвет (перегрузка для единообразия вызовов из блоков). */
+  public static void at(Effect e, Vec2 pos, Color c){
+    e.at(pos.x, pos.y, c);
+  }
 }
