@@ -13,6 +13,7 @@ import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.draw.*;
 import mindustry.entities.bullet.*;
 import mindustry.game.*;
+import mindustry.world.meta.Env;
 import mindustry.gen.*;
 import mindustry.content.*;
 import com.viridis.mod.world.blocks.*;
@@ -52,7 +53,7 @@ public class ViridisBlocks{
 
     //--- core ---
     coreSprout = new CoreBlock("viridis-core-sprout"){{
-      environment = Env.terrestrial; team = Team.sharded;
+      envEnabled |= Env.terrestrial;
       health = 1400; size = 3; itemCapacity = 4000;
       unitType = ViridisUnitTypes.bee;
       alwaysUnlocked = true;
@@ -68,7 +69,7 @@ public class ViridisBlocks{
       requirements(Category.units, with(ViridisItems.chitin, 2, ViridisItems.silicaMoss, 1));
     }};
     bioVault = new StorageBlock("viridis-bio-vault"){{
-      capacity = 1600; tier = 2;
+      itemCapacity = 1600;
       requirements(Category.effect, with(ViridisItems.chitin, 60, ViridisItems.ferroBark, 30));
     }};
 

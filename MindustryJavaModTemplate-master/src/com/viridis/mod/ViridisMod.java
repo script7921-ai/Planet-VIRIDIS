@@ -3,8 +3,8 @@ package com.viridis.mod;
 import arc.*;
 import arc.util.*;
 import mindustry.*;
-import mindustry.game.EventType.*;
-import mindustry.game.Trigger;
+import mindustry.game.EventType;
+import mindustry.game.EventType.Trigger;
 import mindustry.mod.*;
 
 import com.viridis.mod.content.*;
@@ -37,15 +37,11 @@ public class ViridisMod extends Mod{
     IrritationManager.init();
     VascularOverlay.init();
 
-    Events.on(ClientLoadEvent.class, e -> {
+    Events.on(EventType.ClientLoadEvent.class, e -> {
       //бандл локализации подтягивается автоматически из assets/bundles (если есть); здесь — только хуки
     });
 
-    //мировой оверлей «Vascular Vision» рисуется поверх тайлов через триггер draw
-    Events.on(Trigger.draw.class, () -> {
-      if(Vars.state != null && Vars.state.isPlaying() && VascularOverlay.vascularVision){
-        VascularOverlay.drawWorldOverlay();
-      }
-    });
+    //мировой оверлей «Vascular Vision»: zero-alloc — переопределяем draw() невидимого Group поверх HUD
+    VascularOverlay.installDrawHook();
   }
 }

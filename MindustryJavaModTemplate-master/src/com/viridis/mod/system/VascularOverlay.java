@@ -14,6 +14,11 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
 import mindustry.world.*;
+import mindustry.world.blocks.defense.Wall;
+import mindustry.game.EventType;
+import arc.scene.event.InputListener;
+import arc.scene.event.InputEvent;
+import arc.scene.event.Touchable;
 
 /**
  * HUD «био-сканера» Виридиса:
@@ -35,7 +40,7 @@ public class VascularOverlay{
   static Table gaugeTable;
 
   public static void init(){
-    Events.on(ClientLoadEvent.class, e -> build());
+    Events.on(EventType.ClientLoadEvent.class, e -> build());
   }
 
   static void build(){
@@ -43,7 +48,7 @@ public class VascularOverlay{
 
     gaugeTable = new Table(){{
       background(Tex.pane);
-      touchable(Touchable.enabled);
+      touchable(() -> Touchable.enabled);
       clicked(() -> vascularVision = !vascularVision);
     }};
 
@@ -203,5 +208,19 @@ public class VascularOverlay{
     Draw.alpha(1f);
     Draw.blend();
     Draw.reset();
+  }
+
+  /** Невидимый Group поверх hudGroup: его draw() вызывается каждый кадр без аллокаций. */
+  static class OverlayDrawer extends arc.scene.Group{
+    @Override public void draw(){
+      VascularOverlay.drawWorldOverlay();
+      super.draw();
+    }
+  }
+
+  public static void installDrawHook(){
+    if(Vars.ui != null && Vars.ui.hudGroup != null){
+      Vars.ui.hudGroup.addChild(new OverlayDrawer());
+    }
   }
 }

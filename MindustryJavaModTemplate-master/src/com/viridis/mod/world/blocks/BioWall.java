@@ -1,7 +1,10 @@
 package com.viridis.mod.world.blocks;
 
 import arc.util.*;
+import mindustry.game.Team;
 import mindustry.gen.*;
+import arc.util.io.Reads;
+import arc.util.io.Writes;
 
 /**
  * «Био-стена» (Хитиновая / Керато-бронестена): пассивная регенерация вне боя.

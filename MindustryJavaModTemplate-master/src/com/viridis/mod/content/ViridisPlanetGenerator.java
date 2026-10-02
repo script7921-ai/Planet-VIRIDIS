@@ -5,6 +5,7 @@ import mindustry.game.*;
 import mindustry.graphics.g3d.*;
 import mindustry.maps.generators.*;
 import mindustry.world.*;
+import mindustry.type.Sector;
 
 /** Процедурная генерация: перегной + мох + фризо-почва, стены ферро-флоры полосами шума. */
 public class ViridisPlanetGenerator extends PlanetGenerator{

@@ -6,6 +6,7 @@ import mindustry.entities.*;
 import mindustry.gen.*;
 import mindustry.type.*;
 import mindustry.world.*;
+import mindustry.world.meta.Env;
 import mindustry.world.blocks.production.*;
 
 import com.viridis.mod.content.*;
@@ -94,7 +95,7 @@ public class LyticAutoclave extends GenericCrafter{
           liquids.remove(overflowFluid, excess);
           //прорыв наружу: лужа вокруг автоклава (Puddles.deposit по соседним тайлам) + раздражение планеты
           for(int i = 0; i < 4; i++){
-            Tile near = tile.near(i);
+            Tile near = tile.nearby(i);
             if(near != null && near.block() != null && !near.block().solid) Puddles.deposit(near, overflowFluid, 0.35f);
           }
           if(wasVisible){

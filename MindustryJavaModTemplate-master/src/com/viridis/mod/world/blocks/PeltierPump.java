@@ -4,13 +4,17 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.util.*;
+import arc.util.io.Reads;
+import arc.util.io.Writes;
 import mindustry.*;
 import mindustry.entities.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
+import mindustry.world.*;
 import mindustry.world.blocks.production.*;
+import mindustry.world.meta.Env;
 
 import com.viridis.mod.content.*;
 import com.viridis.mod.system.*;
@@ -110,7 +114,7 @@ public class PeltierPump extends SolidPump{
 
       //ДЕТОНАЦИЯ перегрева
       if(heat >= heatMax){
-        Fx.explosion.at(x, y);
+        mindustry.content.Fx.explosion.at(x, y);
         Sounds.explosion.at(x, y);
         kill();
       }
