@@ -29,8 +29,7 @@ cost = 1.5f; hardness = 2;
 localizedName = "Био-ячейка";
 }};
 luminite = new Item("viridis-luminite", Color.valueOf("9a6cff")){{
-cost = 2f; hardness = 3; chargeTime = 40f; chargeBeginColor = Color.valueOf("9a6cff"); chargeMidColor = Color.valueOf("55ff44");
-lightColor = Color.valueOf("9a6cff").a(0.4f);
+cost = 2f; hardness = 3;
 localizedName = "Фосфорный Люминит";
 }};
 fossilAmber = new Item("viridis-fossil-amber", Color.valueOf("ffa640")){{
@@ -39,7 +38,6 @@ localizedName = "Окаменевшая смола";
 }};
 radBulb = new Item("viridis-rad-bulb", Color.valueOf("7fff3f")){{
 cost = 4f; hardness = 4; radioactivity = 0.7f;
-lightColor = Color.valueOf("7fff3f").a(0.35f);
 localizedName = "Радио-клубень";
 }};
 
@@ -57,13 +55,10 @@ localizedName = "Керато-сплав";
 }};
 nitroPollen = new Item("viridis-nitro-pollen", Color.valueOf("e8ff59")){{
 cost = 2.5f; explosiveness = 1.4f; flammability = 0.8f;
-lightColor = Color.valueOf("e8ff59").a(0.5f);
 localizedName = "Нитро-пыльца";
 }};
 neuralFiber = new Item("viridis-neural-fiber", Color.valueOf("c800ff")){{
 cost = 5f;
-chargeTime = 60f; chargeBeginColor = Color.valueOf("c800ff"); chargeMidColor = Color.valueOf("00ffd5");
-lightColor = Color.valueOf("c800ff").a(0.5f);
 localizedName = "Нейро-нить";
 }};
 }
