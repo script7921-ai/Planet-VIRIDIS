@@ -4,6 +4,7 @@ import arc.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.game.EventType.*;
+import mindustry.game.Trigger;
 import mindustry.mod.*;
 
 import com.viridis.mod.content.*;
