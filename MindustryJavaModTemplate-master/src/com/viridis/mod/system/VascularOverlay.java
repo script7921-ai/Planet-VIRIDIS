@@ -44,15 +44,16 @@ public class VascularOverlay{
     gaugeTable = new Table(){{
       background(Tex.pane);
       touchable(Touchable.enabled);
-      tooltips.add(IrritationManager::tooltip);
       clicked(() -> vascularVision = !vascularVision);
     }};
 
-    Vars.hudGroup.addChild(new Table(){{
+    if(Vars.ui != null && Vars.ui.hudGroup != null){
+    Vars.ui.hudGroup.addChild(new Table(){{
       top().right();
       margin(6f);
       add(gaugeTable).padTop(Vars.mobile ? 220f : 150f);
     }});
+    }
 
     attachGauge();
 
@@ -62,7 +63,7 @@ public class VascularOverlay{
       public boolean keyDown(InputEvent event, KeyCode key){
         if(key == KeyCode.v && Vars.state != null && Vars.state.isPlaying()){
           vascularVision = !vascularVision;
-          if(vascularVision) VUI.showInfoQuick("[green]Vascular Vision: [])ON[]");
+          if(vascularVision && Vars.ui != null && Vars.ui.hudfrag != null) Vars.ui.hudfrag.showToast("[green]Vascular Vision: [])ON[]");
           return true;
         }
         return false;
@@ -92,11 +93,13 @@ public class VascularOverlay{
     gaugeTable.add(g).size(78f, 118f);
     gaugeTable.row();
     //кнопка Vascular Vision (дублирует клавишу V)
-    TextButton btn = new TextButton("VASC", Styles.flattest);
+    TextButton btn = new TextButton("VASC", Styles.flatt);
     btn.clicked(() -> vascularVision = !vascularVision);
     btn.update(() -> btn.setChecked(vascularVision));
     gaugeTable.add(btn).size(78f, 30f).padTop(2f);
   }
+
+  static float absSin(float a){ return Math.abs(Mathf.sin(a)); }
 
   static void drawGauge(float x, float y, float w, float h){
 
@@ -109,18 +112,16 @@ public class VascularOverlay{
 
     //стеклянная колба
     Draw.color(c);
-    Draw.aa = true;
     Lines.stroke(2f);
     Lines.circle(x + w/2f, y + h*0.72f, 22f);
 
     //пульсирующий нервный узел
-    float r = 8f + Mathf.absSin(pulse) * 4f + IrritationManager.irritation * 6f;
+    float r = 8f + absSin(pulse) * 4f + IrritationManager.irritation * 6f;
     Draw.alpha(0.9f);
     Fill.circle(x + w/2f, y + h*0.72f, r);
     Draw.color(Color.white);
     Draw.alpha(0.75f);
     Fill.circle(x + w/2f, y + h*0.72f, r*0.35f);
-    Draw.aa = false;
 
     //кардиограмма P-QRS-T
     Draw.color(c);
@@ -145,7 +146,7 @@ public class VascularOverlay{
     //помехи при критическом раздражении (76–100%)
     if(IrritationManager.irritation > 0.76f && !IrritationManager.controlled){
       Draw.color(colRage);
-      Draw.alpha(0.3f * Mathf.absSin(pulse*2.3f));
+      Draw.alpha(0.3f * absSin(pulse*2.3f));
       for(int i = 0; i < 3; i++){
         float gy = y + randLine(i)*h;
         Fill.rect(x + w/2f, gy, w*0.9f, 1.5f);
@@ -157,7 +158,7 @@ public class VascularOverlay{
 
   static float randLine(int i){
     //детерминированный шум без аллокаций
-    return 0.15f + 0.7f * Mathf.absSin(Time.time*0.07f + i*2.4f);
+    return 0.15f + 0.7f * absSin(Time.time*0.07f + i*2.4f);
   }
 
   /** Форма импульса кардиограммы: P-QRS-T, t ∈ [0..1]. */
@@ -176,26 +177,23 @@ public class VascularOverlay{
     if(!vascularVision || Vars.state == null || !Vars.state.isPlaying()) return;
 
     //зелёный светофильтр
+    Camera cam = Core.camera;
     Draw.color(colCalm);
     Draw.alpha(0.07f);
-    Camera cam = Vars.camera;
     Fill.rect(cam.position.x, cam.position.y, cam.width, cam.height);
     Draw.alpha(1f);
 
-    //подсветка вен/стен в зоне видимости камеры — без опроса всей карты
-    Tile[][] tiles = Vars.world.tiles();
-    if(tiles == null) return;
+    //подсветка вен/стен в зоне видимости камеры — итерация по координатам мира
+    int mw = Vars.world.width(), mh = Vars.world.height();
     int cx = (int)(cam.position.x / 8f), cy = (int)(cam.position.y / 8f);
     int rx = (int)(cam.width / 8f / 2f) + 2, ry = (int)(cam.height / 8f / 2f) + 2;
-    int x0 = Math.max(0, cx - rx), x1 = Math.min(tiles.length - 1, cx + rx);
-    int y0 = Math.max(0, cy - ry), y1 = tiles.length > 0 ? Math.min((tiles[0] == null ? 0 : tiles[0].length) - 1, cy + ry) : 0;
+    int x0 = Math.max(0, cx - rx), x1 = Math.min(mw - 1, cx + rx);
+    int y0 = Math.max(0, cy - ry), y1 = Math.min(mh - 1, cy + ry);
 
     Draw.blend(Blending.additive);
     for(int tx = x0; tx <= x1; tx++){
-      Tile[] colArr = tiles[tx];
-      if(colArr == null) continue;
-      for(int ty = y0; ty <= y1 && ty < colArr.length; ty++){
-        Tile t = colArr[ty];
+      for(int ty = y0; ty <= y1; ty++){
+        Tile t = Vars.world.rawTile(tx, ty);
         if(t == null || !t.block().solid || !(t.block() instanceof Wall)) continue;
         Draw.color(colRage);
         Draw.alpha(0.16f + 0.1f * Mathf.sin(pulse * 0.6f + tx * 0.3f + ty * 0.5f));

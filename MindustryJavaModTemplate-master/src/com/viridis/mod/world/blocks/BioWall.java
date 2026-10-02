@@ -15,10 +15,11 @@ public class BioWall extends mindustry.world.blocks.defense.Wall{
   /** Сколько тиков после получения урона регенер отключён. */
   public float regenDelay = 240f;
 
-  public final int timerRegen = timers++;
+  public static int timerRegen = -1;
 
   public BioWall(String name){
     super(name);
+    timerRegen = ++timers;
     update = true;
     destructible = true;
   }
@@ -34,15 +35,34 @@ public class BioWall extends mindustry.world.blocks.defense.Wall{
     public float timeSinceHit = 9999f;
 
     @Override
-    public void handleDestroyed(DamageType type){
-      super.handleDestroyed(type);
+    public void update(){
+      super.update();
+      timeSinceHit += Time.delta;
+    }
+
+    @Override
+    public void damage(float amount){
+      timeSinceHit = 0f;
+      super.damage(amount);
+    }
+
+    @Override
+    public void damage(Team team, float amount){
+      timeSinceHit = 0f;
+      super.damage(team, amount);
+    }
+
+    @Override
+    public void damage(Bullet b, Team team, float amount){
+      timeSinceHit = 0f;
+      super.damage(b, team, amount);
     }
 
     @Override
     public void updateTile(){
       super.updateTile();
-      //пассивный регенер только вне боя: used recent-damage флаг движка
-      if(!wasRecentlyDamaged() && health < maxHealth){
+      //пассивная регенерация только вне боя: собственный таймер покоя timeSinceHit
+      if(timeSinceHit >= regenDelay && health < maxHealth){
         if(timer(timerRegen, regenInterval)){
           health = Math.min(maxHealth, health + regenAmount);
         }

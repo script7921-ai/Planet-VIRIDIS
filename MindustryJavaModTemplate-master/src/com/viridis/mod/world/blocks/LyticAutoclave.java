@@ -2,8 +2,10 @@ package com.viridis.mod.world.blocks;
 
 import java.util.*;
 import arc.util.*;
+import mindustry.entities.*;
 import mindustry.gen.*;
 import mindustry.type.*;
+import mindustry.world.*;
 import mindustry.world.blocks.production.*;
 
 import com.viridis.mod.content.*;
@@ -36,7 +38,6 @@ public class LyticAutoclave extends GenericCrafter{
     solid = true;
     update = true;
     destructible = true;
-    flags = EnumSet.of(BlockFlag.factory);
     envEnabled |= Env.space;
     category = Category.crafting;
   }
@@ -65,14 +66,14 @@ public class LyticAutoclave extends GenericCrafter{
     }
 
     @Override
-    public void handleDestroyed(DamageType type){
+    public void onDestroyed(){
       //при гибели — остаточный разрыв желчи
       if(overflowFluid != null && wasVisible){
         ViridisFx.bileSplat.at(x, y);
         IrritationManager.bump(0.01f);
       }
       unregister();
-      super.handleDestroyed(type);
+      super.onDestroyed();
     }
 
     void unregister(){
@@ -91,9 +92,11 @@ public class LyticAutoclave extends GenericCrafter{
         if(timer(timerDumpBile, 60f)){
           float excess = Math.min(liquids.get(overflowFluid) - overflowThreshold * liquidCapacity, 0.8f);
           liquids.remove(overflowFluid, excess);
-          dumpLiquid(overflowFluid);
-          //прорыв наружу: лужа под автоклавом + раздражение планеты
-          Tiles.spawnLiquid(tile, overflowFluid, 0.35f);
+          //прорыв наружу: лужа вокруг автоклава (Puddles.deposit по соседним тайлам) + раздражение планеты
+          for(int i = 0; i < 4; i++){
+            Tile near = tile.near(i);
+            if(near != null && near.block() != null && !near.block().solid) Puddles.deposit(near, overflowFluid, 0.35f);
+          }
           if(wasVisible){
             ViridisFx.bileSplat.at(x, y);
           }
