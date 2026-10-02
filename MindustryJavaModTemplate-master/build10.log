@@ -1,0 +1,744 @@
+Downloading https://services.gradle.org/distributions/gradle-9.4.1-bin.zip
+.............10%.............20%.............30%.............40%.............50%.............60%..............70%.............80%.............90%.............100%
+
+Welcome to Gradle 9.4.1!
+
+Here are the highlights of this release:
+ - Java 26 support
+ - Non-class-based JVM tests
+ - Enhanced console progress bar
+
+For more details see https://docs.gradle.org/9.4.1/release-notes.html
+
+Starting a Gradle Daemon (subsequent builds will be faster)
+
+> Task :compileJava
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/WallHarvester.java:72: error: cannot find symbol
+  public void drawPlanRegion(BuildPlan plan, Eachable<BuildPlan> list){
+                             ^
+  symbol:   class BuildPlan
+  location: class WallHarvester
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/WallHarvester.java:72: error: cannot find symbol
+  public void drawPlanRegion(BuildPlan plan, Eachable<BuildPlan> list){
+                                                      ^
+  symbol:   class BuildPlan
+  location: class WallHarvester
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/WallHarvester.java:100: error: cannot find symbol
+  public boolean canPlaceOn(Tile tile, Team team, int rotation){
+                                       ^
+  symbol:   class Team
+  location: class WallHarvester
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisPlanetGenerator.java:23: error: cannot find symbol
+  public int getSectorSize(Sector sector){
+                           ^
+  symbol:   class Sector
+  location: class ViridisPlanetGenerator
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/PeltierPump.java:81: error: cannot find symbol
+    public void handleDestroyed(DamageType type){
+                                ^
+  symbol:   class DamageType
+  location: class PeltierPump.PeltierPumpBuild
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/PeltierPump.java:147: error: cannot find symbol
+    public void write(Writes write){
+                      ^
+  symbol:   class Writes
+  location: class PeltierPump.PeltierPumpBuild
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/PeltierPump.java:153: error: cannot find symbol
+    public void read(Reads read, byte revision){
+                     ^
+  symbol:   class Reads
+  location: class PeltierPump.PeltierPumpBuild
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/BioWall.java:37: error: cannot find symbol
+    public void handleDestroyed(DamageType type){
+                                ^
+  symbol:   class DamageType
+  location: class BioWall.BioWallBuild
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/BioWall.java:54: error: cannot find symbol
+    public void write(Writes write){
+                      ^
+  symbol:   class Writes
+  location: class BioWall.BioWallBuild
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/BioWall.java:60: error: cannot find symbol
+    public void read(Reads read, byte revision){
+                     ^
+  symbol:   class Reads
+  location: class BioWall.BioWallBuild
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/WallHarvester.java:130: error: cannot find symbol
+    public void handleDestroyed(DamageType type){
+                                ^
+  symbol:   class DamageType
+  location: class WallHarvester.WallHarvesterBuild
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/LyticAutoclave.java:68: error: cannot find symbol
+    public void handleDestroyed(DamageType type){
+                                ^
+  symbol:   class DamageType
+  location: class LyticAutoclave.LyticAutoclaveBuild
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisBlocks.java:55: error: cannot find symbol
+      environment = Env.terrestrial; team = Team.sharded;
+      ^
+  symbol: variable environment
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisBlocks.java:55: error: cannot find symbol
+      environment = Env.terrestrial; team = Team.sharded;
+                    ^
+  symbol: variable Env
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisBlocks.java:55: error: cannot find symbol
+      environment = Env.terrestrial; team = Team.sharded;
+                                     ^
+  symbol: variable team
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisBlocks.java:71: error: cannot find symbol
+      capacity = 1600; tier = 2;
+      ^
+  symbol: variable capacity
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisBlocks.java:71: error: cannot find symbol
+      capacity = 1600; tier = 2;
+                       ^
+  symbol: variable tier
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/WallHarvester.java:63: error: cannot find symbol
+    addBar("harvest", (WallHarvesterBuild e) -> new Bar(() -> Core.bundle.format("bar.drillspeed", Strings.fixed(e.lastEff * 60f / harvestTime, 2)), () -> Pal.ammo, () -> e.warmup));
+                                                    ^
+  symbol:   class Bar
+  location: class WallHarvester
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/WallHarvester.java:63: error: package Core does not exist
+    addBar("harvest", (WallHarvesterBuild e) -> new Bar(() -> Core.bundle.format("bar.drillspeed", Strings.fixed(e.lastEff * 60f / harvestTime, 2)), () -> Pal.ammo, () -> e.warmup));
+                                                                  ^
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/WallHarvester.java:78: error: cannot find symbol
+    return b != null && b.solid && (b instanceof StaticWall || b instanceof Wall);
+                                                                            ^
+  symbol:   class Wall
+  location: class WallHarvester
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/WallHarvester.java:108: error: package Core does not exist
+    drawPlaceText(Core.bundle.formatFloat("bar.drillspeed", 60f / harvestTime * n, 2), x, y, valid);
+                      ^
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/WallHarvester.java:129: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/WallHarvester.java:160: error: incompatible types: Point2 cannot be converted to Vec2
+          Vec2 v = Geometry.d4(rotation);
+                              ^
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/LyticAutoclave.java:39: error: cannot find symbol
+    flags = EnumSet.of(BlockFlag.factory);
+                       ^
+  symbol:   variable BlockFlag
+  location: class LyticAutoclave
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/LyticAutoclave.java:40: error: cannot find symbol
+    envEnabled |= Env.space;
+                  ^
+  symbol:   variable Env
+  location: class LyticAutoclave
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/LyticAutoclave.java:67: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/LyticAutoclave.java:96: error: cannot find symbol
+          Tiles.spawnLiquid(tile, overflowFluid, 0.35f);
+          ^
+  symbol:   variable Tiles
+  location: class LyticAutoclave.LyticAutoclaveBuild
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/PeltierPump.java:44: error: cannot find symbol
+    flags = EnumSet.of(BlockFlag.pump);
+                       ^
+  symbol:   variable BlockFlag
+  location: class PeltierPump
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/PeltierPump.java:45: error: cannot find symbol
+    envEnabled |= Env.space;
+                  ^
+  symbol:   variable Env
+  location: class PeltierPump
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/PeltierPump.java:58: error: cannot find symbol
+    stats.add(mindustry.world.meta.Stat.optional, stat -> {
+                                       ^
+  symbol:   variable optional
+  location: class Stat
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/PeltierPump.java:80: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/PeltierPump.java:101: error: cannot find symbol
+      float prev = progress;
+                   ^
+  symbol:   variable progress
+  location: class PeltierPump.PeltierPumpBuild
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/PeltierPump.java:104: error: cannot find symbol
+      boolean pumping = efficiency > 0f && liquids.get(result()) < liquidCapacity;
+                                                       ^
+  symbol:   method result()
+  location: class PeltierPump.PeltierPumpBuild
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/PeltierPump.java:120: error: package Fx does not exist
+        Fx.explosion.at(x, y);
+          ^
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/PeltierPump.java:138: error: cannot find symbol
+        Draw.alpha(0.4f + 0.3f * Mathf.absSin(Time.time * 0.2f));
+                                      ^
+  symbol:   method absSin(float)
+  location: class Mathf
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/BioWall.java:36: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisLiquids.java:16: error: incompatible types: Liquid[] cannot be converted to ObjectSet<Liquid>
+canStayOn = new Liquid[]{this};
+            ^
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisLiquids.java:24: error: incompatible types: Liquid[] cannot be converted to ObjectSet<Liquid>
+canStayOn = new Liquid[]{this};
+            ^
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisLiquids.java:33: error: incompatible types: Liquid[] cannot be converted to ObjectSet<Liquid>
+canStayOn = new Liquid[]{this};
+            ^
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisItems.java:32: error: cannot find symbol
+cost = 2f; hardness = 3; chargeTime = 40f; chargeBeginColor = Color.valueOf("9a6cff"); chargeMidColor = Color.valueOf("55ff44");
+                         ^
+  symbol: variable chargeTime
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisItems.java:32: error: cannot find symbol
+cost = 2f; hardness = 3; chargeTime = 40f; chargeBeginColor = Color.valueOf("9a6cff"); chargeMidColor = Color.valueOf("55ff44");
+                                           ^
+  symbol: variable chargeBeginColor
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisItems.java:32: error: cannot find symbol
+cost = 2f; hardness = 3; chargeTime = 40f; chargeBeginColor = Color.valueOf("9a6cff"); chargeMidColor = Color.valueOf("55ff44");
+                                                                                       ^
+  symbol: variable chargeMidColor
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisItems.java:33: error: cannot find symbol
+lightColor = Color.valueOf("9a6cff").a(0.4f);
+^
+  symbol: variable lightColor
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisItems.java:42: error: cannot find symbol
+lightColor = Color.valueOf("7fff3f").a(0.35f);
+^
+  symbol: variable lightColor
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisItems.java:60: error: cannot find symbol
+lightColor = Color.valueOf("e8ff59").a(0.5f);
+^
+  symbol: variable lightColor
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisItems.java:65: error: cannot find symbol
+chargeTime = 60f; chargeBeginColor = Color.valueOf("c800ff"); chargeMidColor = Color.valueOf("00ffd5");
+^
+  symbol: variable chargeTime
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisItems.java:65: error: cannot find symbol
+chargeTime = 60f; chargeBeginColor = Color.valueOf("c800ff"); chargeMidColor = Color.valueOf("00ffd5");
+                  ^
+  symbol: variable chargeBeginColor
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisItems.java:65: error: cannot find symbol
+chargeTime = 60f; chargeBeginColor = Color.valueOf("c800ff"); chargeMidColor = Color.valueOf("00ffd5");
+                                                              ^
+  symbol: variable chargeMidColor
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisItems.java:66: error: cannot find symbol
+lightColor = Color.valueOf("c800ff").a(0.5f);
+^
+  symbol: variable lightColor
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/ViridisMod.java:30: error: cannot find symbol
+    ViridisTechTree.build();
+    ^
+  symbol:   variable ViridisTechTree
+  location: class ViridisMod
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/ViridisMod.java:44: error: cannot find symbol
+    Events.on(Trigger.draw.class, () -> {
+                     ^
+  symbol:   class draw
+  location: class Trigger
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:44: error: cannot find symbol
+    return Vars.state != null && Vars.state.rules.planet == ViridisPlanets.viridis;
+           ^
+  symbol:   variable Vars
+  location: class IrritationManager
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:44: error: package Vars.state does not exist
+    return Vars.state != null && Vars.state.rules.planet == ViridisPlanets.viridis;
+                                           ^
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:52: error: cannot find symbol
+      if(e.to == State.menu || e.to == State.paused){ /* значение сохраняется до конца игры */ }
+                 ^
+  symbol:   variable State
+  location: class IrritationManager
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:52: error: cannot find symbol
+      if(e.to == State.menu || e.to == State.paused){ /* значение сохраняется до конца игры */ }
+                                       ^
+  symbol:   variable State
+  location: class IrritationManager
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:53: error: cannot find symbol
+      if(e.from == State.playing && e.to != State.playing) reset();
+                   ^
+  symbol:   variable State
+  location: class IrritationManager
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:53: error: cannot find symbol
+      if(e.from == State.playing && e.to != State.playing) reset();
+                                            ^
+  symbol:   variable State
+  location: class IrritationManager
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:80: error: cannot find symbol
+    sources.removeValue(b, true);
+           ^
+  symbol:   method removeValue(Building,boolean)
+  location: variable sources of type Seq<Building>
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:100: error: cannot find symbol
+      if(b == null || !b.exists()){
+                        ^
+  symbol:   method exists()
+  location: variable b of type Building
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:101: error: cannot find symbol
+        sources.removeIndex(i);
+               ^
+  symbol:   method removeIndex(int)
+  location: variable sources of type Seq<Building>
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:110: error: cannot find symbol
+    irritation = Mathf.clamp(irritation + net / 60f + pendingBump);
+                 ^
+  symbol:   variable Mathf
+  location: class IrritationManager
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:130: error: cannot find symbol
+    sb.append("[accent]Раздражение биосферы: []).white(").append(Mathf.round(irritation * 100f)).append("%[]\n");
+                                                                 ^
+  symbol:   variable Mathf
+  location: class IrritationManager
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:134: error: cannot find symbol
+      if(b == null || !b.exists()) continue;
+                        ^
+  symbol:   method exists()
+  location: variable b of type Building
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:38: error: cannot find symbol
+    Events.on(ClientLoadEvent.class, e -> build());
+              ^
+  symbol:   class ClientLoadEvent
+  location: class VascularOverlay
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:46: error: cannot find symbol
+      touchable(Touchable.enabled);
+                ^
+  symbol: variable Touchable
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:47: error: cannot find symbol
+      tooltips.add(IrritationManager::tooltip);
+      ^
+  symbol: variable tooltips
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:51: error: cannot find symbol
+    Vars.hudGroup.addChild(new Table(){{
+        ^
+  symbol:   variable hudGroup
+  location: class Vars
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:60: error: cannot find symbol
+    Core.scene.addListener(new InputListener(){
+                               ^
+  symbol:   class InputListener
+  location: class VascularOverlay
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:62: error: cannot find symbol
+      public boolean keyDown(InputEvent event, KeyCode key){
+                             ^
+  symbol: class InputEvent
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:61: error: method does not override or implement a method from a supertype
+      @Override
+      ^
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:65: error: cannot find symbol
+          if(vascularVision) VUI.showInfoQuick("[green]Vascular Vision: [])ON[]");
+                             ^
+  symbol: variable VUI
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:95: error: cannot find symbol
+    TextButton btn = new TextButton("VASC", Styles.flattest);
+                                                  ^
+  symbol:   variable flattest
+  location: class Styles
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:112: error: cannot find symbol
+    Draw.aa = true;
+        ^
+  symbol:   variable aa
+  location: class Draw
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:117: error: cannot find symbol
+    float r = 8f + Mathf.absSin(pulse) * 4f + IrritationManager.irritation * 6f;
+                        ^
+  symbol:   method absSin(float)
+  location: class Mathf
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:123: error: cannot find symbol
+    Draw.aa = false;
+        ^
+  symbol:   variable aa
+  location: class Draw
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:148: error: cannot find symbol
+      Draw.alpha(0.3f * Mathf.absSin(pulse*2.3f));
+                             ^
+  symbol:   method absSin(float)
+  location: class Mathf
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:160: error: cannot find symbol
+    return 0.15f + 0.7f * Mathf.absSin(Time.time*0.07f + i*2.4f);
+                               ^
+  symbol:   method absSin(float)
+  location: class Mathf
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:181: error: cannot find symbol
+    Camera cam = Vars.camera;
+                     ^
+  symbol:   variable camera
+  location: class Vars
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:186: error: cannot find symbol
+    Tile[][] tiles = Vars.world.tiles();
+                               ^
+  symbol:   method tiles()
+  location: variable world of type World
+/workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:199: error: cannot find symbol
+        if(t == null || !t.block().solid || !(t.block() instanceof Wall)) continue;
+                                                                   ^
+  symbol:   class Wall
+  location: class VascularOverlay
+80 errors
+
+> Task :compileJava FAILED
+
+[Incubating] Problems report is available at: file:///workspace/MindustryJavaModTemplate-master/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Compilation failed; see the compiler output below.
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/WallHarvester.java:160: error: incompatible types: Point2 cannot be converted to Vec2
+            Vec2 v = Geometry.d4(rotation);
+                                ^
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisLiquids.java:16: error: incompatible types: Liquid[] cannot be converted to ObjectSet<Liquid>
+  canStayOn = new Liquid[]{this};
+              ^
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisLiquids.java:24: error: incompatible types: Liquid[] cannot be converted to ObjectSet<Liquid>
+  canStayOn = new Liquid[]{this};
+              ^
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisLiquids.java:33: error: incompatible types: Liquid[] cannot be converted to ObjectSet<Liquid>
+  canStayOn = new Liquid[]{this};
+              ^
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/WallHarvester.java:72: error: cannot find symbol
+    public void drawPlanRegion(BuildPlan plan, Eachable<BuildPlan> list){
+                               ^
+    symbol:   class BuildPlan
+    location: class WallHarvester
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/WallHarvester.java:72: error: cannot find symbol
+    public void drawPlanRegion(BuildPlan plan, Eachable<BuildPlan> list){
+                                                        ^
+    symbol:   class BuildPlan
+    location: class WallHarvester
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/WallHarvester.java:100: error: cannot find symbol
+    public boolean canPlaceOn(Tile tile, Team team, int rotation){
+                                         ^
+    symbol:   class Team
+    location: class WallHarvester
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisPlanetGenerator.java:23: error: cannot find symbol
+    public int getSectorSize(Sector sector){
+                             ^
+    symbol:   class Sector
+    location: class ViridisPlanetGenerator
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/PeltierPump.java:81: error: cannot find symbol
+      public void handleDestroyed(DamageType type){
+                                  ^
+    symbol:   class DamageType
+    location: class PeltierPump.PeltierPumpBuild
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/PeltierPump.java:147: error: cannot find symbol
+      public void write(Writes write){
+                        ^
+    symbol:   class Writes
+    location: class PeltierPump.PeltierPumpBuild
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/PeltierPump.java:153: error: cannot find symbol
+      public void read(Reads read, byte revision){
+                       ^
+    symbol:   class Reads
+    location: class PeltierPump.PeltierPumpBuild
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/BioWall.java:37: error: cannot find symbol
+      public void handleDestroyed(DamageType type){
+                                  ^
+    symbol:   class DamageType
+    location: class BioWall.BioWallBuild
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/BioWall.java:54: error: cannot find symbol
+      public void write(Writes write){
+                        ^
+    symbol:   class Writes
+    location: class BioWall.BioWallBuild
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/BioWall.java:60: error: cannot find symbol
+      public void read(Reads read, byte revision){
+                       ^
+    symbol:   class Reads
+    location: class BioWall.BioWallBuild
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/WallHarvester.java:130: error: cannot find symbol
+      public void handleDestroyed(DamageType type){
+                                  ^
+    symbol:   class DamageType
+    location: class WallHarvester.WallHarvesterBuild
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/LyticAutoclave.java:68: error: cannot find symbol
+      public void handleDestroyed(DamageType type){
+                                  ^
+    symbol:   class DamageType
+    location: class LyticAutoclave.LyticAutoclaveBuild
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/WallHarvester.java:63: error: cannot find symbol
+      addBar("harvest", (WallHarvesterBuild e) -> new Bar(() -> Core.bundle.format("bar.drillspeed", Strings.fixed(e.lastEff * 60f / harvestTime, 2)), () -> Pal.ammo, () -> e.warmup));
+                                                      ^
+    symbol:   class Bar
+    location: class WallHarvester
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/WallHarvester.java:78: error: cannot find symbol
+      return b != null && b.solid && (b instanceof StaticWall || b instanceof Wall);
+                                                                              ^
+    symbol:   class Wall
+    location: class WallHarvester
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/LyticAutoclave.java:39: error: cannot find symbol
+      flags = EnumSet.of(BlockFlag.factory);
+                         ^
+    symbol:   variable BlockFlag
+    location: class LyticAutoclave
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/LyticAutoclave.java:40: error: cannot find symbol
+      envEnabled |= Env.space;
+                    ^
+    symbol:   variable Env
+    location: class LyticAutoclave
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/LyticAutoclave.java:96: error: cannot find symbol
+            Tiles.spawnLiquid(tile, overflowFluid, 0.35f);
+            ^
+    symbol:   variable Tiles
+    location: class LyticAutoclave.LyticAutoclaveBuild
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/PeltierPump.java:44: error: cannot find symbol
+      flags = EnumSet.of(BlockFlag.pump);
+                         ^
+    symbol:   variable BlockFlag
+    location: class PeltierPump
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/PeltierPump.java:45: error: cannot find symbol
+      envEnabled |= Env.space;
+                    ^
+    symbol:   variable Env
+    location: class PeltierPump
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/PeltierPump.java:58: error: cannot find symbol
+      stats.add(mindustry.world.meta.Stat.optional, stat -> {
+                                         ^
+    symbol:   variable optional
+    location: class Stat
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/PeltierPump.java:101: error: cannot find symbol
+        float prev = progress;
+                     ^
+    symbol:   variable progress
+    location: class PeltierPump.PeltierPumpBuild
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/ViridisMod.java:30: error: cannot find symbol
+      ViridisTechTree.build();
+      ^
+    symbol:   variable ViridisTechTree
+    location: class ViridisMod
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/ViridisMod.java:44: error: cannot find symbol
+      Events.on(Trigger.draw.class, () -> {
+                       ^
+    symbol:   class draw
+    location: class Trigger
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:44: error: cannot find symbol
+      return Vars.state != null && Vars.state.rules.planet == ViridisPlanets.viridis;
+             ^
+    symbol:   variable Vars
+    location: class IrritationManager
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:52: error: cannot find symbol
+        if(e.to == State.menu || e.to == State.paused){ /* значение сохраняется до конца игры */ }
+                   ^
+    symbol:   variable State
+    location: class IrritationManager
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:52: error: cannot find symbol
+        if(e.to == State.menu || e.to == State.paused){ /* значение сохраняется до конца игры */ }
+                                         ^
+    symbol:   variable State
+    location: class IrritationManager
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:53: error: cannot find symbol
+        if(e.from == State.playing && e.to != State.playing) reset();
+                     ^
+    symbol:   variable State
+    location: class IrritationManager
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:53: error: cannot find symbol
+        if(e.from == State.playing && e.to != State.playing) reset();
+                                              ^
+    symbol:   variable State
+    location: class IrritationManager
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:110: error: cannot find symbol
+      irritation = Mathf.clamp(irritation + net / 60f + pendingBump);
+                   ^
+    symbol:   variable Mathf
+    location: class IrritationManager
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:130: error: cannot find symbol
+      sb.append("[accent]Раздражение биосферы: []).white(").append(Mathf.round(irritation * 100f)).append("%[]\n");
+                                                                   ^
+    symbol:   variable Mathf
+    location: class IrritationManager
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:38: error: cannot find symbol
+      Events.on(ClientLoadEvent.class, e -> build());
+                ^
+    symbol:   class ClientLoadEvent
+    location: class VascularOverlay
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:51: error: cannot find symbol
+      Vars.hudGroup.addChild(new Table(){{
+          ^
+    symbol:   variable hudGroup
+    location: class Vars
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:60: error: cannot find symbol
+      Core.scene.addListener(new InputListener(){
+                                 ^
+    symbol:   class InputListener
+    location: class VascularOverlay
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:95: error: cannot find symbol
+      TextButton btn = new TextButton("VASC", Styles.flattest);
+                                                    ^
+    symbol:   variable flattest
+    location: class Styles
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:112: error: cannot find symbol
+      Draw.aa = true;
+          ^
+    symbol:   variable aa
+    location: class Draw
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:123: error: cannot find symbol
+      Draw.aa = false;
+          ^
+    symbol:   variable aa
+    location: class Draw
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:181: error: cannot find symbol
+      Camera cam = Vars.camera;
+                       ^
+    symbol:   variable camera
+    location: class Vars
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:199: error: cannot find symbol
+          if(t == null || !t.block().solid || !(t.block() instanceof Wall)) continue;
+                                                                     ^
+    symbol:   class Wall
+    location: class VascularOverlay
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/WallHarvester.java:129: error: method does not override or implement a method from a supertype
+      @Override
+      ^
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/LyticAutoclave.java:67: error: method does not override or implement a method from a supertype
+      @Override
+      ^
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/PeltierPump.java:80: error: method does not override or implement a method from a supertype
+      @Override
+      ^
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/BioWall.java:36: error: method does not override or implement a method from a supertype
+      @Override
+      ^
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:61: error: method does not override or implement a method from a supertype
+        @Override
+        ^
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisBlocks.java:55: error: cannot find symbol
+        environment = Env.terrestrial; team = Team.sharded;
+        ^
+    symbol: variable environment
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisBlocks.java:55: error: cannot find symbol
+        environment = Env.terrestrial; team = Team.sharded;
+                      ^
+    symbol: variable Env
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisBlocks.java:55: error: cannot find symbol
+        environment = Env.terrestrial; team = Team.sharded;
+                                       ^
+    symbol: variable team
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisBlocks.java:71: error: cannot find symbol
+        capacity = 1600; tier = 2;
+        ^
+    symbol: variable capacity
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisBlocks.java:71: error: cannot find symbol
+        capacity = 1600; tier = 2;
+                         ^
+    symbol: variable tier
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisItems.java:32: error: cannot find symbol
+  cost = 2f; hardness = 3; chargeTime = 40f; chargeBeginColor = Color.valueOf("9a6cff"); chargeMidColor = Color.valueOf("55ff44");
+                           ^
+    symbol: variable chargeTime
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisItems.java:32: error: cannot find symbol
+  cost = 2f; hardness = 3; chargeTime = 40f; chargeBeginColor = Color.valueOf("9a6cff"); chargeMidColor = Color.valueOf("55ff44");
+                                             ^
+    symbol: variable chargeBeginColor
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisItems.java:32: error: cannot find symbol
+  cost = 2f; hardness = 3; chargeTime = 40f; chargeBeginColor = Color.valueOf("9a6cff"); chargeMidColor = Color.valueOf("55ff44");
+                                                                                         ^
+    symbol: variable chargeMidColor
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisItems.java:33: error: cannot find symbol
+  lightColor = Color.valueOf("9a6cff").a(0.4f);
+  ^
+    symbol: variable lightColor
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisItems.java:42: error: cannot find symbol
+  lightColor = Color.valueOf("7fff3f").a(0.35f);
+  ^
+    symbol: variable lightColor
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisItems.java:60: error: cannot find symbol
+  lightColor = Color.valueOf("e8ff59").a(0.5f);
+  ^
+    symbol: variable lightColor
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisItems.java:65: error: cannot find symbol
+  chargeTime = 60f; chargeBeginColor = Color.valueOf("c800ff"); chargeMidColor = Color.valueOf("00ffd5");
+  ^
+    symbol: variable chargeTime
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisItems.java:65: error: cannot find symbol
+  chargeTime = 60f; chargeBeginColor = Color.valueOf("c800ff"); chargeMidColor = Color.valueOf("00ffd5");
+                    ^
+    symbol: variable chargeBeginColor
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisItems.java:65: error: cannot find symbol
+  chargeTime = 60f; chargeBeginColor = Color.valueOf("c800ff"); chargeMidColor = Color.valueOf("00ffd5");
+                                                                ^
+    symbol: variable chargeMidColor
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/content/ViridisItems.java:66: error: cannot find symbol
+  lightColor = Color.valueOf("c800ff").a(0.5f);
+  ^
+    symbol: variable lightColor
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:46: error: cannot find symbol
+        touchable(Touchable.enabled);
+                  ^
+    symbol: variable Touchable
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:47: error: cannot find symbol
+        tooltips.add(IrritationManager::tooltip);
+        ^
+    symbol: variable tooltips
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:62: error: cannot find symbol
+        public boolean keyDown(InputEvent event, KeyCode key){
+                               ^
+    symbol: class InputEvent
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:65: error: cannot find symbol
+            if(vascularVision) VUI.showInfoQuick("[green]Vascular Vision: [])ON[]");
+                               ^
+    symbol: variable VUI
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/PeltierPump.java:104: error: cannot find symbol
+        boolean pumping = efficiency > 0f && liquids.get(result()) < liquidCapacity;
+                                                         ^
+    symbol:   method result()
+    location: class PeltierPump.PeltierPumpBuild
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/PeltierPump.java:138: error: cannot find symbol
+          Draw.alpha(0.4f + 0.3f * Mathf.absSin(Time.time * 0.2f));
+                                        ^
+    symbol:   method absSin(float)
+    location: class Mathf
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:80: error: cannot find symbol
+      sources.removeValue(b, true);
+             ^
+    symbol:   method removeValue(Building,boolean)
+    location: variable sources of type Seq<Building>
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:100: error: cannot find symbol
+        if(b == null || !b.exists()){
+                          ^
+    symbol:   method exists()
+    location: variable b of type Building
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:101: error: cannot find symbol
+          sources.removeIndex(i);
+                 ^
+    symbol:   method removeIndex(int)
+    location: variable sources of type Seq<Building>
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:134: error: cannot find symbol
+        if(b == null || !b.exists()) continue;
+                          ^
+    symbol:   method exists()
+    location: variable b of type Building
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:117: error: cannot find symbol
+      float r = 8f + Mathf.absSin(pulse) * 4f + IrritationManager.irritation * 6f;
+                          ^
+    symbol:   method absSin(float)
+    location: class Mathf
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:148: error: cannot find symbol
+        Draw.alpha(0.3f * Mathf.absSin(pulse*2.3f));
+                               ^
+    symbol:   method absSin(float)
+    location: class Mathf
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:160: error: cannot find symbol
+      return 0.15f + 0.7f * Mathf.absSin(Time.time*0.07f + i*2.4f);
+                                 ^
+    symbol:   method absSin(float)
+    location: class Mathf
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/VascularOverlay.java:186: error: cannot find symbol
+      Tile[][] tiles = Vars.world.tiles();
+                                 ^
+    symbol:   method tiles()
+    location: variable world of type World
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/WallHarvester.java:63: error: package Core does not exist
+      addBar("harvest", (WallHarvesterBuild e) -> new Bar(() -> Core.bundle.format("bar.drillspeed", Strings.fixed(e.lastEff * 60f / harvestTime, 2)), () -> Pal.ammo, () -> e.warmup));
+                                                                    ^
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/WallHarvester.java:108: error: package Core does not exist
+      drawPlaceText(Core.bundle.formatFloat("bar.drillspeed", 60f / harvestTime * n, 2), x, y, valid);
+                        ^
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/world/blocks/PeltierPump.java:120: error: package Fx does not exist
+          Fx.explosion.at(x, y);
+            ^
+  /workspace/MindustryJavaModTemplate-master/src/com/viridis/mod/system/IrritationManager.java:44: error: package Vars.state does not exist
+      return Vars.state != null && Vars.state.rules.planet == ViridisPlanets.viridis;
+                                             ^
+  80 errors
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+
+BUILD FAILED in 25s
+1 actionable task: 1 executed

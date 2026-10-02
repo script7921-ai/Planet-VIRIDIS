@@ -4,13 +4,17 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.util.*;
+import arc.util.io.Reads;
+import arc.util.io.Writes;
 import mindustry.*;
 import mindustry.entities.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
+import mindustry.world.*;
 import mindustry.world.blocks.production.*;
+import mindustry.world.meta.Env;
 
 import com.viridis.mod.content.*;
 import com.viridis.mod.system.*;
@@ -34,14 +38,14 @@ public class PeltierPump extends SolidPump{
   /** Дельта раздражения в секунду (сейсмический шум откачки). */
   public float irritationPerSecond = 0.3f;
 
-  public final int timerVib = timers++;
+  public static int timerVib = -1;
 
   public PeltierPump(String name){
     super(name);
+    timerVib = ++timers;
     hasLiquids = true;
     update = true;
     destructible = true;
-    flags = EnumSet.of(BlockFlag.pump);
     envEnabled |= Env.space;
     category = Category.crafting;
   }
@@ -52,13 +56,7 @@ public class PeltierPump extends SolidPump{
     if(liquidCapacity == 0f) liquidCapacity = 40f;
   }
 
-  @Override
-  public void setStats(){
-    super.setStats();
-    stats.add(mindustry.world.meta.Stat.optional, stat -> {
-      stat.append("Тепловой насос: нагревает окрестности при работе. Требуется охлаждение или перерывы.");
-    });
-  }
+  static float absSin(float a){ return Math.abs(Mathf.sin(a)); }
 
   public class PeltierPumpBuild extends SolidPumpBuild{
     public float heat;
@@ -78,7 +76,7 @@ public class PeltierPump extends SolidPump{
     }
 
     @Override
-    public void handleDestroyed(DamageType type){
+    public void onDestroyed(){
       unregister();
       //перегретая помпа разрывает контур: желчная авария + всплеск ярости
       if(heat >= heatMax * 0.7f){
@@ -86,7 +84,7 @@ public class PeltierPump extends SolidPump{
         IrritationManager.bump(0.02f);
         Damage.damage(team, x, y, tilesize * 4f, 60f, false, false, false);
       }
-      super.handleDestroyed(type);
+      super.onDestroyed();
     }
 
     void unregister(){
@@ -98,10 +96,9 @@ public class PeltierPump extends SolidPump{
 
     @Override
     public void updateTile(){
-      float prev = progress;
       super.updateTile();
 
-      boolean pumping = efficiency > 0f && liquids.get(result()) < liquidCapacity;
+      boolean pumping = efficiency > 0f && liquids.get(result) < liquidCapacity;
 
       if(pumping){
         //теплонасос: чем активнее качаем — тем больше тепла в контуре
@@ -117,7 +114,7 @@ public class PeltierPump extends SolidPump{
 
       //ДЕТОНАЦИЯ перегрева
       if(heat >= heatMax){
-        Fx.explosion.at(x, y);
+        mindustry.content.Fx.explosion.at(x, y);
         Sounds.explosion.at(x, y);
         kill();
       }
@@ -135,7 +132,7 @@ public class PeltierPump extends SolidPump{
       if(heat > heatMax * 0.6f){
         Draw.z(Layer.blockOver + 0.1f);
         Draw.color(Color.valueOf("ff9900"));
-        Draw.alpha(0.4f + 0.3f * Mathf.absSin(Time.time * 0.2f));
+        Draw.alpha(0.4f + 0.3f * absSin(Time.time * 0.2f));
         Lines.stroke(1.5f);
         Lines.circle(x, y, 6f + size * 4f);
         Draw.reset();

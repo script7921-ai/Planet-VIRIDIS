@@ -1,9 +1,12 @@
 package com.viridis.mod.system;
 
 import arc.*;
+import arc.math.*;
 import arc.graphics.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.*;
+import mindustry.core.GameState.State;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.world.blocks.defense.Wall;
@@ -77,7 +80,7 @@ public class IrritationManager{
 
   /** Снятие источника. Вызывается из onProximityRemoved()/удаления здания. */
   public static void unregister(Building b){
-    sources.removeValue(b, true);
+    sources.remove(b, true);
     deltas.remove(b);
   }
 
@@ -97,8 +100,8 @@ public class IrritationManager{
     //ленивая чистка мёртвых зданий + суммирование дельт
     for(int i = sources.size - 1; i >= 0; i--){
       Building b = sources.get(i);
-      if(b == null || !b.exists()){
-        sources.removeIndex(i);
+      if(b == null || b.tile == null || b.tile.build != b){
+        sources.remove(i);
         if(b != null) deltas.remove(b);
         continue;
       }
@@ -131,7 +134,7 @@ public class IrritationManager{
     int shown = 0;
     for(int i = 0; i < sources.size && shown < 6; i++){
       Building b = sources.get(i);
-      if(b == null || !b.exists()) continue;
+      if(b == null || b.tile == null || b.tile.build != b) continue;
       sb.append("[gray]").append(b.block.localizedName).append(": +")
         .append(String.format("%.2f", deltas.get(b, 0f))).append("/s\n");
       shown++;

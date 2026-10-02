@@ -12,6 +12,12 @@ import mindustry.graphics.*;
 import mindustry.type.*;
 import com.viridis.mod.content.ViridisFx;
 import mindustry.world.*;
+import mindustry.world.blocks.defense.Wall;
+import mindustry.entities.units.BuildPlan;
+import mindustry.game.Team;
+import arc.util.Eachable;
+import arc.scene.ui.layout.Table;
+import mindustry.ui.Bar;
 import mindustry.world.blocks.environment.*;
 import mindustry.world.meta.*;
 
@@ -34,10 +40,11 @@ public class WallHarvester extends Block{
   public Effect updateEffect = ViridisFx.sapBurst;
   public float updateEffectChance = 0.03f;
 
-  public final int timerVib = timers++;
+  public static int timerVib = -1;
 
   public WallHarvester(String name){
     super(name);
+    timerVib = ++timers;
     size = 2;
     hasItems = true;
     itemCapacity = 12;
@@ -45,7 +52,6 @@ public class WallHarvester extends Block{
     update = true;
     solid = true;
     destructible = true;
-    flags = EnumSet.of(BlockFlag.drill);
     envEnabled |= Env.space;
     category = Category.production;
   }
@@ -60,7 +66,7 @@ public class WallHarvester extends Block{
   @Override
   public void setBars(){
     super.setBars();
-    addBar("harvest", (WallHarvesterBuild e) -> new Bar(() -> Core.bundle.format("bar.drillspeed", Strings.fixed(e.lastEff * 60f / harvestTime, 2)), () -> Pal.ammo, () -> e.warmup));
+    addBar("harvest", (WallHarvesterBuild e) -> new Bar(arc.Core.bundle.get("bar.drillspeed"), Pal.ammo, () -> e.warmup));
   }
 
   @Override
@@ -105,7 +111,7 @@ public class WallHarvester extends Block{
   public void drawPlace(int x, int y, int rotation, boolean valid){
     super.drawPlace(x, y, rotation, valid);
     int n = scanCount(x, y, rotation);
-    drawPlaceText(Core.bundle.formatFloat("bar.drillspeed", 60f / harvestTime * n, 2), x, y, valid);
+    drawPlaceText(arc.Core.bundle.formatFloat("bar.drillspeed", 60f / harvestTime * n, 2), x, y, valid);
   }
 
   public class WallHarvesterBuild extends Building{
@@ -127,9 +133,9 @@ public class WallHarvester extends Block{
     }
 
     @Override
-    public void handleDestroyed(DamageType type){
+    public void onDestroyed(){
       unregisterIrritation();
-      super.handleDestroyed(type);
+      super.onDestroyed();
     }
 
     void unregisterIrritation(){
@@ -157,7 +163,7 @@ public class WallHarvester extends Block{
           IrritationManager.bump(0.004f);
         }
         if(wasVisible){
-          Vec2 v = Geometry.d4(rotation);
+          Point2 v = Geometry.d4(rotation);
           updateEffect.at(x + v.x * tilesize, y + v.y * tilesize, wallDrop.color);
         }
       }
